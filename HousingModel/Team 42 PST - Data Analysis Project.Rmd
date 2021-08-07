@@ -117,15 +117,13 @@ central_location = c(mean(selected_housing_data$longitude), mean(selected_housin
 ## Get map
 austin_map = ggmap(get_googlemap(center = central_location, scale = 1,zoom = 10), extent = "normal")
 
-## Plot Mobility
+## Plot heatmap
 austin_map + geom_point(
-  aes(x = selected_housing_data$longitude, y = selected_housing_data$latitude),
+  aes(x = longitude, y = latitude, color = latestPrice),
   data = selected_housing_data,
-  col = "red",
   alpha = 0.4,
-  size = 0.1
-) + xlim(range(selected_housing_data$longitude)) + ylim(range(selected_housing_data$latitude))
-
+  size = 3
+) + xlim(range(selected_housing_data$longitude)) + ylim(range(selected_housing_data$latitude)) + scale_color_distiller(palette = "Spectral", labels = comma) + xlab("Longitude") + ylab("Latitude") + ggtitle("Heatmap: latest sale price ($ USD) by property")
 ```
 
 ## 2. Train-Test split
