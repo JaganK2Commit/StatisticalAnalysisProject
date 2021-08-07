@@ -1,0 +1,399 @@
+---
+title: "Data Analysis Project"
+author: "STAT 420, Summer 2021, Jagadeesh Kedarisetty, Nilesh Bhandarwar, Peri Rocha"
+date: "07/18/2021"
+output:
+  html_document: 
+    theme: readable
+    toc: yes
+  pdf_document: default
+urlcolor: cyan
+---
+
+```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
+options(scipen = 1, digits = 4, width = 80, fig.align = "center")
+```
+
+## Introduction
+
+1. Describe the project goal
+2. Description of the original data file including description of all relevant variables
+3. Brief the structure of dataset, number of observations, number of predictors, numerical, categorical. 
+4. Data anlaysis techniques and concepts that are utilized in the project
+  - Data cleaning
+  - Collinearity
+  - Multiple linear regression
+  - ANOVA
+  - Interaction
+  - Assumption diagnostics
+  - Outlier diagnostics
+  - Transformations
+  - Polynomial regression
+  - Stepwise model selection
+  - Variable selection
+
+5. Libraries used
+  - library(ggmap)
+  - library(ggplot2)
+  - library(readr)
+  - library(faraway)
+  - library(lmtest)
+
+
+# 1. Data cleaning
+
+```{r kable,message=FALSE,echo=FALSE}
+
+raw_housing_data = read.csv("austinHousingData.csv")
+
+# remove all rows with missing data
+raw_housing_data = na.omit(raw_housing_data)
+
+# Make homeType a factor variable
+raw_housing_data$homeType = as.factor(raw_housing_data$homeType)
+
+# Removed predictors that are not used.
+selected_housing_data = subset(raw_housing_data, select = -c(zpid, latest_saledate, latestPriceSource,city, homeImage, streetAddress, numOfPhotos))
+
+head(selected_housing_data)
+
+```
+
+we shall have an brief view of the dataset and a visualization the against key predictors and filter the outliers.
+
+```{r}
+summary(selected_housing_data)
+```
+
+```{r}
+
+dataVisuals = function(data) {
+par(mfrow = c(2,3))
+
+plot(latestPrice ~ homeType, data = data, pch = 20, col = "dodgerblue",main = "latestPrice vs. homeType", cex = 1.5)
+plot(latestPrice ~ avgSchoolDistance  , data = data, pch = 20, col = "dodgerblue",main = "latestPrice vs. avgSchoolDistance  ", cex = 1.5)
+plot(latestPrice ~ livingAreaSqFt, data = data, pch = 20, col = "dodgerblue",main = "latestPrice vs. livingAreaSqFt", cex = 1.5)
+
+plot(latestPrice ~ lotSizeSqFt, data = data, pch = 20, col = "dodgerblue",main = "latestPrice vs. lotSizeSqFt", cex = 1.5)
+plot(latestPrice ~ numOfBedrooms, data = data, pch = 20, col = "dodgerblue",main = "latestPrice vs. numOfBedrooms", cex = 1.5)
+plot(latestPrice ~ numOfBathrooms, data = data, pch = 20, col = "dodgerblue",main = "latestPrice vs. numOfBathrooms", cex = 1.5)
+}
+
+dataVisuals(selected_housing_data)
+```
+
+From the data structure and visuals, we see there are significant outliers in the data set. For instance one observation has a livingAreaSqft '109292' compared to its mean '1975'. And similiar outliers are noticed in 'lotSizeSqFt', 'numOfBedrooms', ' 'numOfBathrooms' etc. Will be removing these outliers using boxplot stats. 
+
+```{r, warning=FALSE}
+
+for (x in c('homeType','latestPrice', 'avgSchoolDistance', 'livingAreaSqFt', 'lotSizeSqFt', 'numOfBedrooms', 'numOfBathrooms'))
+{
+  value = selected_housing_data[,x][selected_housing_data[,x] %in% boxplot.stats(selected_housing_data[,x])$out]
+  selected_housing_data[,x][selected_housing_data[,x] %in% value] = NA
+} 
+
+# remove all rows with missing data
+selected_housing_data = na.omit(selected_housing_data)
+
+dataVisuals(selected_housing_data)
+
+```
+
+Map visual of the dataset by latitude and longitude.
+
+```{r warning=FALSE}
+
+#install.packages('ggmap')
+
+library(ggmap)
+library(ggplot2)
+
+# register google maps API key
+register_google(key = "AIzaSyAXuwivTHN6rIgi3teuusdz3r8dqNMQQx8")
+
+## Central co-ordinates of the region we are interested in.
+central_location = c(mean(selected_housing_data$longitude), mean(selected_housing_data$latitude))
+
+## Get map
+austin_map = ggmap(get_googlemap(center = central_location, scale = 1,zoom = 10), extent = "normal")
+
+## Plot Mobility
+austin_map + geom_point(
+  aes(x = selected_housing_data$longitude, y = selected_housing_data$latitude),
+  data = selected_housing_data,
+  col = "red",
+  alpha = 0.4,
+  size = 0.1
+) + xlim(range(selected_housing_data$longitude)) + ylim(range(selected_housing_data$latitude))
+
+```
+
+## 2. Train-Test split
+
+```{r}
+set.seed(19870412)
+ratio = 0.25
+idx  = sample(nrow(selected_housing_data), size = nrow(selected_housing_data)* ratio)
+housing_data_train = selected_housing_data[idx, ]
+housing_data_test = selected_housing_data[-idx, ]
+
+```
+
+## 3 Collinearity
+
+First, we'll look at the variables in the dataset to determine if there's multicollinearity.
+
+```{r}
+
+library(faraway)
+
+options(max.print=1000000)
+
+# This is a helper function to get the top n items from a matrix. 
+# Adjusted from https://stackoverflow.com/questions/32544566/find-the-largest-values-on-a-matrix-in-r
+
+nlargest = function(m, n=10, sim = TRUE) {
+  mult = 1;
+  if (sim) mult = 2
+  res = order(m, decreasing = TRUE)[seq_len(n) * mult]
+  pos = arrayInd(res, dim(m), useNames = TRUE)
+  list(values = m[res],
+       position = pos)
+}
+
+# A correlation cannot be computed for factor variables.So we'll create a copy of 
+# the data frame without the factor variables to run the collinearity analysis
+num_cols = unlist(lapply(housing_data_train, is.numeric))
+housing_data_numerical = housing_data_train[ , num_cols]
+
+# Pairs won't work with more than 26 variables
+# pairs(housing_data_train[,1:26], col="dodgerblue")
+
+# run cor() and store results on a matrix 
+(coll_matrix = round(cor(housing_data_numerical),2))
+```
+
+```{r}
+#garageSpaces is not always the same as parkingSpaces
+spaces_different = housing_data_train$parkingSpaces != housing_data_train$garageSpaces
+
+# Proportion of observations where parkingSpaces is different than garageSpaces
+length(spaces_different[spaces_different==TRUE]) / length(spaces_different)
+```
+
+We don't observe examples of collinearity between variables above 0.8, except for the relationship between `parkingSpaces` and `garageSpaces`. Remember that `parkingSpaces` is the number of parking spots, while `garageSpaces` represents the number of garage spaces as a subset of the `ParkingSpaces` variable. The latest may include additional parking spaces provided by common areas. These variables contain the same value in 0.23% of the observations.
+
+Therefore, we'll eliminate the `garageSpaces` variable from the dataset. 
+
+```{r}
+housing_data_train = subset(housing_data_train, select = -c(garageSpaces))
+```
+
+We'll further look for multicollinearity with the remaining variables. 
+
+```{r}
+num_cols = unlist(lapply(housing_data_train, is.numeric))
+housing_data_numerical = housing_data_train[ , num_cols]
+coll_matrix = round(cor(housing_data_numerical),2)
+```
+
+This matrix is extensive, and it may be easy to miss high values. So let's use a function to look at the highest values in the matrix. 
+
+```{r}
+# Look at the top values from coll_matrix that are different than 1: 
+nlargest(coll_matrix, n=45)$values[nlargest(coll_matrix, n=45)$values < 1]
+```
+
+We now see that there's no collinearity between variables that's higher than 0.8. Still, we can further investigate the model to see if there's any variable impacting the response at considerable rates when compared to the others. 
+
+
+```{r}
+library('faraway')
+housing_data_model = lm(latestPrice ~ ., data = housing_data_train)
+
+vif = vif(housing_data_model)
+vif[which(vif > 5)]
+
+```
+
+Variable `numOfPrimarySchools` shows a VIF greater than 5, which may be a concern. What proportion of the observed variation in latestPrice is explained by a linear relationship with `numOfPrimarySchools`? How about `parkingSpaces`?
+
+```{r}
+
+summary(lm(hasGarage ~. -latestPrice, data = housing_data_train))$r.squared
+
+housing_data_model_non_significant = lm(latestPrice ~ .-hasGarage, data = housing_data_train)
+vif_non_significant = vif(housing_data_model_non_significant)
+vif_non_significant[which(vif_non_significant > 5)]
+
+#Finally, compare both models
+(anova_results = anova(housing_data_model, housing_data_model_non_significant))
+
+# As p-value is significant (0.94), we fail to reject and consider remove hasGarage predictor.
+housing_data_train = subset(housing_data_train, select = -c(hasGarage))
+
+```
+## 4. Model Buidling
+
+## 4.1 Additive model
+
+```{r warning=FALSE}
+
+housing_data_model = lm(latestPrice ~ ., data = housing_data_train)
+
+length(coef(housing_data_model))
+## 43 predictors
+
+summary(housing_data_model)$r.squared # 0.5569
+summary(housing_data_model)$adj.r.squared # 0.5509
+
+# sqrt(mean((resid(housing_data_model) / (1 - hatvalues(housing_data_model))) ^ 2)) 
+
+```
+
+From the R2 value about 53.9% data is explained by this model and there are 46 predictors in the model. Next, we will try to find a “better” model with higher R2 (> 0.5392) or adjusted R2 (> 0.5371) and lower value of LOOCV_RMSE (< 111435) to explain the data.
+
+Interaction model has better adjusted R squared value. 0.7132 compared to additive model 0.4134
+
+```{r warning=FALSE}
+
+## Additive model AIC and BIC
+
+housing_data_model_aic = step(housing_data_model, direction = "backward", trace = 0)
+extractAIC(housing_data_model_aic) # returns both p and AIC
+## 29 predictors
+summary(housing_data_model_aic)$adj.r.squared
+## [1] 0.5515
+
+housing_data_model_bic = step(housing_data_model, direction = "backward", trace = 0, k = log(nrow(housing_data_numerical)))
+extractAIC(housing_data_model_bic)  # returns both p and AIC
+## 20 predictors
+summary(housing_data_model_bic)$adj.r.squared
+## [1] 0.5467
+
+
+## Exhaustive Search
+
+library(leaps)
+
+housing_data_model_leaps = summary(regsubsets(latestPrice ~ ., data = housing_data_train))
+
+housing_data_model_leaps$rss
+
+housing_data_model_leaps$adjr2
+
+housing_data_model_leaps_r2_index = which.max(housing_data_model_leaps$adjr2)  # 0.5167
+
+housing_data_model_leaps$which[housing_data_model_leaps_r2_index, ]
+
+housing_data_model_leaps_best = lm(latestPrice~zipcode + propertyTaxRate + hasAssociation + yearBuilt + numPriceChanges              + numOfWaterfrontFeatures + latest_saleyear + avgSchoolSize + 
+                                     livingAreaSqFt + avgSchoolRating , data = housing_data_train )
+
+summary(housing_data_model_leaps_best)
+
+anova(housing_data_model, housing_data_model_leaps_best) # p-value is <2e-16 # Reject null hypothesis. 
+# leaps best model can be considered 
+
+```
+
+## Interactive model
+
+```{r}
+
+housing_data_model_interaction = lm(latestPrice ~ (zipcode + propertyTaxRate + hasAssociation + yearBuilt + 
+    numPriceChanges + numOfWaterfrontFeatures + latest_saleyear + 
+    avgSchoolSize + livingAreaSqFt + avgSchoolRating)^2, data = housing_data_train)
+
+summary(housing_data_model_interaction)
+
+length(coef(housing_data_model_interaction))## 56 predictors
+
+summary(housing_data_model_interaction)$r.squared # 0.5899
+summary(housing_data_model_interaction)$adj.r.squared # 0.5836
+
+anova(housing_data_model, housing_data_model_interaction)[2,"Pr(>F)"] 
+# 2.438e-49
+# Reject Null hypothesis
+
+```
+
+## Model Selection on interactions
+
+```{r}
+
+housing_data_model_interaction_aic = step(housing_data_model_interaction, direction = "backward", trace = 0)
+extractAIC(housing_data_model_interaction_aic) # returns both p and AIC
+housing_data_model_interaction_aic
+# 31 predictors  72174
+summary(housing_data_model_interaction_aic)$adj.r.squared
+# [1] 0.5844
+
+housing_data_model_interaction_bic = step(housing_data_model_interaction, direction = "backward", trace = 0, k = log(nrow(housing_data_numerical)))
+
+extractAIC(housing_data_model_interaction_bic)  # returns both p and AIC
+# 25  predictors 72189
+summary(housing_data_model_interaction_bic)$adj.r.squared
+# [1] 0.581
+
+```
+
+## Diagnostics
+
+```{r}
+
+diagnostics = function (model){
+  
+par(mfrow = c(1, 3))
+
+plot(fitted(model), resid(model), pch = 20,
+                xlab = "Fitted Values",
+                ylab = "Residuals",
+                main = "Fitted vs Residuals",
+                col = "grey")
+
+abline(h = 0, lwd = 2, col = "orange")
+        
+qqnorm(resid(model), pch = 20, main = "QQNorm Plot",col = "grey")
+qqline( resid(model),lwd = 2, col =  "orange")
+
+hist(resid(model),main = "Histogram of Residuals",col = "orange",xlab = "Residuals",ylab = "Frequency")
+
+library(lmtest)
+bptest(model)
+shapiro.test(resid(model))
+
+}
+
+diagnostics(housing_data_model_interaction_aic)
+
+```
+
+## Outliers
+```{r}
+
+cooksd = cooks.distance(housing_data_model_interaction_aic)
+
+plot(cooksd, pch="*", cex=2, main="Influential Observations by Cooks distance")  # plot cook's distance
+abline(h = 4*mean(cooksd, na.rm=T), col="blue")  # add cutoff line
+
+text(x=1:length(cooksd)+1, y=cooksd, labels=ifelse(cooksd>2*mean(cooksd, na.rm=T),names(cooksd),""), col="red")  # add labels
+
+housing_data_model_interaction_aic_without_outliers = lm(latestPrice ~ zipcode + propertyTaxRate + hasAssociation + 
+    yearBuilt + numPriceChanges + numOfWaterfrontFeatures + latest_saleyear + 
+    avgSchoolSize + livingAreaSqFt + avgSchoolRating + zipcode:numPriceChanges + 
+    zipcode:numOfWaterfrontFeatures + zipcode:avgSchoolSize + 
+    zipcode:livingAreaSqFt + propertyTaxRate:hasAssociation + 
+    propertyTaxRate:yearBuilt + propertyTaxRate:avgSchoolSize + 
+    propertyTaxRate:livingAreaSqFt + propertyTaxRate:avgSchoolRating + 
+    hasAssociation:yearBuilt + hasAssociation:numPriceChanges + 
+    hasAssociation:latest_saleyear + hasAssociation:avgSchoolSize + 
+    hasAssociation:livingAreaSqFt + hasAssociation:avgSchoolRating + 
+    yearBuilt:numOfWaterfrontFeatures + yearBuilt:latest_saleyear + 
+    yearBuilt:avgSchoolSize + yearBuilt:avgSchoolRating + numPriceChanges:latest_saleyear + 
+    numPriceChanges:livingAreaSqFt + latest_saleyear:avgSchoolSize + 
+    avgSchoolSize:livingAreaSqFt + avgSchoolSize:avgSchoolRating + 
+    livingAreaSqFt:avgSchoolRating, data = housing_data_train,  subset = cooksd <= 2*mean(cooksd, na.rm=T))
+
+diagnostics(housing_data_model_interaction_aic_without_outliers)
+```
+
