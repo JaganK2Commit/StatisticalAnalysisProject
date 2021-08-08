@@ -112,7 +112,7 @@ The data used in our study offers *15,171 observations* and *45 variables*. Foll
 Our first step will be to read the data from a csv file (`austinHousingData.csv`) and perform some data cleaning tasks: 
 
 - Remove rows with missing data
-- The homeType variable has 10 different possible values (Apartment, Condo, Residential, etc). We'll make it a factor variable. 
+- The `homeType` variable has 10 different possible values (Apartment, Condo, Residential, etc). We'll make it a factor variable. 
 - Remove variables that will not be used in the analysis for lack of relevancy to the property price: `zpid`, `latest_saledate`, `latestPriceSource`, `city`, `homeImage`, `streetAddress`, and `numOfPhotos` 
 
 ```{r, message=FALSE,echo=FALSE}
@@ -531,6 +531,8 @@ diagnostics(housing_data_model_interaction_aic_without_outliers)
 bptest(housing_data_model_interaction_aic_without_outliers)
  
 ```
+
+
 ```{r}
 library(MASS)
 boxcox(housing_data_model_interaction_aic_without_outliers, plotit = TRUE, lambda = seq(0, 1, by = 0.05))
@@ -558,6 +560,7 @@ bptest(housing_data_model_interaction_aic_without_outliers)
  
 <br/> We used Box Cox transformation on our model to improve constant variance. As visible in box cox we can see that normal distribution mean is centered around 0.43. We tried using 0.43 to 0.50 as exponential formula as per box cox transformation and we got best model at 0.50. Our p-value for normal distribution is 0.4 howevere constant variation is still haveing low p-value. As we improved a lot based on fitted vs residual plot so we are making this as our final model after applying box cox transofrmtion.
 <br/>
+
 # Links and citations
 
 ## Appendix A: libraries used
