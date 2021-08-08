@@ -85,7 +85,6 @@ dataVisuals(selected_housing_data)
 From the data structure and visuals, we see there are significant outliers in the data set. For instance one observation has a livingAreaSqft '109292' compared to its mean '1975'. And similiar outliers are noticed in 'lotSizeSqFt', 'numOfBedrooms', ' 'numOfBathrooms' etc. Will be removing these outliers using boxplot stats. 
 
 ```{r, warning=FALSE}
-
 for (x in c('homeType','latestPrice', 'avgSchoolDistance', 'livingAreaSqFt', 'lotSizeSqFt', 'numOfBedrooms', 'numOfBathrooms'))
 {
   value = selected_housing_data[,x][selected_housing_data[,x] %in% boxplot.stats(selected_housing_data[,x])$out]
@@ -123,7 +122,7 @@ austin_map + geom_point(
   data = selected_housing_data,
   alpha = 0.4,
   size = 3
-) + xlim(range(selected_housing_data$longitude)) + ylim(range(selected_housing_data$latitude)) + scale_color_distiller(palette = "Spectral", labels = comma) + xlab("Longitude") + ylab("Latitude") + ggtitle("Heatmap: latest sale price ($ USD) by property")
+) + xlim(range(selected_housing_data$longitude)) + ylim(range(selected_housing_data$latitude)) + scale_color_distiller(palette = "Spectral") + xlab("Longitude") + ylab("Latitude") + ggtitle("Heatmap: latest sale price ($ USD) by property")
 ```
 
 ## 2. Train-Test split
