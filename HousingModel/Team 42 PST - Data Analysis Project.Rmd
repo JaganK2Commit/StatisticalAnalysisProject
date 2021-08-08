@@ -313,7 +313,7 @@ spaces_different = housing_data_train$parkingSpaces != housing_data_train$garage
 length(spaces_different[spaces_different==TRUE]) / length(spaces_different)
 ```
 
-We don't observe examples of collinearity between variables above 0.8, except for the relationship between `parkingSpaces` and `garageSpaces`. Remember that `parkingSpaces` is the number of parking spots, while `garageSpaces` represents the number of garage spaces as a subset of the `ParkingSpaces` variable. The latest may include additional parking spaces provided by common areas. These variables contain the same value in 0.23% of the observations.
+We don't observe examples of collinearity between variables above 0.8, except for the relationship between `parkingSpaces` and `garageSpaces`. Remember that `parkingSpaces` is the number of parking spots, while `garageSpaces` represents the number of garage spaces as a subset of the `ParkingSpaces` variable. The latest may include additional parking spaces provided by common areas. These variables contain the same value in 0.16% of the observations.
 
 Therefore, we'll eliminate the `garageSpaces` variable from the dataset. 
 
@@ -418,7 +418,7 @@ housing_data_model_leaps_r2_index = which.max(housing_data_model_leaps$adjr2)  #
 
 housing_data_model_leaps$which[housing_data_model_leaps_r2_index, ]
 
-housing_data_model_leaps_best = lm(latestPrice~zipcode + propertyTaxRate + hasAssociation + yearBuilt + numPriceChanges              + numOfWaterfrontFeatures + latest_saleyear + avgSchoolSize + 
+housing_data_model_leaps_best = lm(latestPrice ~ zipcode + propertyTaxRate + hasAssociation + latest_saleyear + yearBuilt + numPriceChanges + numOfWaterfrontFeatures +  avgSchoolSize + 
                                      livingAreaSqFt + avgSchoolRating , data = housing_data_train )
 
 summary(housing_data_model_leaps_best)
@@ -433,8 +433,7 @@ anova(housing_data_model, housing_data_model_leaps_best) # p-value is <2e-16 # R
 ```{r}
 
 housing_data_model_interaction = lm(latestPrice ~ (zipcode + propertyTaxRate + hasAssociation + yearBuilt + 
-    numPriceChanges + numOfWaterfrontFeatures + latest_saleyear + 
-    avgSchoolSize + livingAreaSqFt + avgSchoolRating)^2, data = housing_data_train)
+    numPriceChanges + numOfWaterfrontFeatures + avgSchoolSize + livingAreaSqFt + latest_saleyear + avgSchoolRating)^2, data = housing_data_train)
 
 summary(housing_data_model_interaction)
 
@@ -506,28 +505,103 @@ diagnostics(housing_data_model_interaction_aic)
 cooksd = cooks.distance(housing_data_model_interaction_aic)
 
 plot(cooksd, pch="*", cex=2, main="Influential Observations by Cooks distance")  # plot cook's distance
-abline(h = 4*mean(cooksd, na.rm=T), col="blue")  # add cutoff line
+abline(h = 2*mean(cooksd, na.rm=T), col="black")  # add cutoff line
 
 text(x=1:length(cooksd)+1, y=cooksd, labels=ifelse(cooksd>2*mean(cooksd, na.rm=T),names(cooksd),""), col="red")  # add labels
 
+
+
 housing_data_model_interaction_aic_without_outliers = lm(latestPrice ~ zipcode + propertyTaxRate + hasAssociation + 
-    yearBuilt + numPriceChanges + numOfWaterfrontFeatures + latest_saleyear + 
-    avgSchoolSize + livingAreaSqFt + avgSchoolRating + zipcode:numPriceChanges + 
+    yearBuilt + numPriceChanges + numOfWaterfrontFeatures + avgSchoolSize + 
+    livingAreaSqFt + latest_saleyear + avgSchoolRating + zipcode:numPriceChanges + 
     zipcode:numOfWaterfrontFeatures + zipcode:avgSchoolSize + 
     zipcode:livingAreaSqFt + propertyTaxRate:hasAssociation + 
     propertyTaxRate:yearBuilt + propertyTaxRate:avgSchoolSize + 
     propertyTaxRate:livingAreaSqFt + propertyTaxRate:avgSchoolRating + 
     hasAssociation:yearBuilt + hasAssociation:numPriceChanges + 
-    hasAssociation:latest_saleyear + hasAssociation:avgSchoolSize + 
-    hasAssociation:livingAreaSqFt + hasAssociation:avgSchoolRating + 
-    yearBuilt:numOfWaterfrontFeatures + yearBuilt:latest_saleyear + 
-    yearBuilt:avgSchoolSize + yearBuilt:avgSchoolRating + numPriceChanges:latest_saleyear + 
-    numPriceChanges:livingAreaSqFt + latest_saleyear:avgSchoolSize + 
-    avgSchoolSize:livingAreaSqFt + avgSchoolSize:avgSchoolRating + 
-    livingAreaSqFt:avgSchoolRating, data = housing_data_train,  subset = cooksd <= 2*mean(cooksd, na.rm=T))
+    hasAssociation:avgSchoolSize + hasAssociation:livingAreaSqFt + 
+    hasAssociation:latest_saleyear + hasAssociation:avgSchoolRating + 
+    yearBuilt:numOfWaterfrontFeatures + yearBuilt:avgSchoolSize + 
+    yearBuilt:latest_saleyear + yearBuilt:avgSchoolRating + numPriceChanges:livingAreaSqFt + 
+    numPriceChanges:latest_saleyear + avgSchoolSize:livingAreaSqFt + 
+    avgSchoolSize:latest_saleyear + avgSchoolSize:avgSchoolRating + 
+    livingAreaSqFt:avgSchoolRating,  data = housing_data_train,  subset = cooksd < 2*mean(cooksd, na.rm=T))
 
 diagnostics(housing_data_model_interaction_aic_without_outliers)
+bptest(housing_data_model_interaction_aic_without_outliers)
+ 
 ```
+```{r}
+library(MASS)
+boxcox(housing_data_model_interaction_aic_without_outliers, plotit = TRUE, lambda = seq(0, 1, by = 0.05))
+
+housing_data_model_interaction_aic_without_outliers = lm((((latestPrice ^ 0.5) -1)/0.5) ~ zipcode + propertyTaxRate + hasAssociation + 
+    yearBuilt + numPriceChanges + numOfWaterfrontFeatures + avgSchoolSize + 
+    livingAreaSqFt + latest_saleyear + avgSchoolRating + zipcode:numPriceChanges + 
+    zipcode:numOfWaterfrontFeatures + zipcode:avgSchoolSize + 
+    zipcode:livingAreaSqFt + propertyTaxRate:hasAssociation + 
+    propertyTaxRate:yearBuilt + propertyTaxRate:avgSchoolSize + 
+    propertyTaxRate:livingAreaSqFt + propertyTaxRate:avgSchoolRating + 
+    hasAssociation:yearBuilt + hasAssociation:numPriceChanges + 
+    hasAssociation:avgSchoolSize + hasAssociation:livingAreaSqFt + 
+    hasAssociation:latest_saleyear + hasAssociation:avgSchoolRating + 
+    yearBuilt:numOfWaterfrontFeatures + yearBuilt:avgSchoolSize + 
+    yearBuilt:latest_saleyear + yearBuilt:avgSchoolRating + numPriceChanges:livingAreaSqFt + 
+    numPriceChanges:latest_saleyear + avgSchoolSize:livingAreaSqFt + 
+    avgSchoolSize:latest_saleyear + avgSchoolSize:avgSchoolRating + 
+    livingAreaSqFt:avgSchoolRating,  data = housing_data_train,  subset = cooksd < 2*mean(cooksd, na.rm=T))
+
+diagnostics(housing_data_model_interaction_aic_without_outliers)
+bptest(housing_data_model_interaction_aic_without_outliers)
+
+```
+ 
+<br/> We used Box Cox transformation on our model to improve constant variance. As visible in box cox we can see that normal distribution mean is centered around 0.43. We tried using 0.43 to 0.50 as exponential formula as per box cox transformation and we got best model at 0.50. Our p-value for normal distribution is 0.4 howevere constant variation is still haveing low p-value. As we improved a lot based on fitted vs residual plot so we are making this as our final model after applying box cox transofrmtion.
+<br/>
+# Links and citations
+
+## Appendix A: libraries used
+
+The following libraries were used in the creation of this report: 
+
+**- ggmap**
+  
+    D. Kahle and H. Wickham. ggmap: Spatial Visualization with ggplot2.
+    
+    The R Journal, 5(1), 144-161. URL
+    
+    http://journal.r-project.org/archive/2013-1/kahle-wickham.pdf
+    
+**- ggplot2**
+  
+    H. Wickham. ggplot2: Elegant Graphics for Data Analysis.
+    
+    Springer-Verlag New York, 2016.
+  
+**- readr**
+
+**- faraway**
+  
+    Julian Faraway (2016). faraway: Functions and Datasets for Books
+  
+    by Julian Faraway. R package version 1.0.7.
+  
+    https://CRAN.R-project.org/package=faraway
+  
+**- lmtest**
+  
+    Achim Zeileis, Torsten Hothorn (2002). Diagnostic Checking in
+    
+    Regression Relationships. R News 2(3), 7-10. URL
+    
+    https://CRAN.R-project.org/doc/Rnews/
+  
+## Appendix B: links
+
+[^1]:"How To Succeed As A First-Time Home Buyer In Today’s Market" (https://www.forbes.com/sites/forbesrealestatecouncil/2021/07/19/how-to-succeed-as-a-first-time-home-buyer-in-todays-market/?sh=79e0d37f19f8)
+[^2]:"Your 4 Most Important Financial Decisions: #1 – The House Purchase" (https://www.retirementstewardship.com/2016/05/28/4-important-financial-decisions-1-house-purchase/)
+[^3]:"Why hot-desking is a terrible idea" (https://www.msn.com/en-us/lifestyle/career/why-hot-desking-is-a-terrible-idea/ar-AAMjgTM?ocid=BingNewsSearch)
+[^4]: [Kaggle](https://www.kaggle.com/) dataset: "Austin, TX House Listings - Features and Images scraped in January 2021". (https://www.kaggle.com/ericpierce/austinhousingprices, `austinHousingData.csv`).
 
 # Links and citations
 
