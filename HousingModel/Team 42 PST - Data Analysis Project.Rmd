@@ -53,7 +53,7 @@ raw_housing_data = na.omit(raw_housing_data)
 raw_housing_data$homeType = as.factor(raw_housing_data$homeType)
 
 # Removed predictors that are not used.
-selected_housing_data = subset(raw_housing_data, select = -c(zpid, latest_saledate, latestPriceSource,city, homeImage, streetAddress, numOfPhotos))
+selected_housing_data = subset(raw_housing_data, select = -c(zpid, latest_saledate,latest_salemonth, latestPriceSource,city, homeImage, streetAddress, numOfPhotos))
 
 head(selected_housing_data)
 
@@ -245,8 +245,21 @@ length(coef(housing_data_model))
 summary(housing_data_model)$r.squared # 0.5569
 summary(housing_data_model)$adj.r.squared # 0.5509
 
-# sqrt(mean((resid(housing_data_model) / (1 - hatvalues(housing_data_model))) ^ 2)) 
+alpha = 0.01
+variables_significant =  summary(housing_data_model)$coef[, 'Pr(>|t|)'] < alpha
+variableNames_significant = names(variables_significant[variables_significant == TRUE][-1])
 
+predictors = paste(variableNames_significant, collapse = "+")
+predictors
+
+housing_data_model_significant =  lm(latestPrice ~ zipcode+longitude+propertyTaxRate+hasAssociation+yearBuilt+numPriceChanges+latest_saleyear+numOfPatioAndPorchFeatures+lotSizeSqFt+livingAreaSqFt+numOfPrimarySchools+numOfElementarySchools+numOfHighSchools+avgSchoolDistance+avgSchoolRating+avgSchoolSize+numOfBathrooms+numOfBedrooms, data = housing_data_train)
+
+anova(housing_data_model, housing_data_model_significant) # 0.000057
+
+housing_data_model = housing_data_model_significant
+
+summary(housing_data_model)$r.squared # 0.5569
+summary(housing_data_model)$adj.r.squared # 0.5509
 ```
 
 From the R2 value about 53.9% data is explained by this model and there are 46 predictors in the model. Next, we will try to find a “better” model with higher R2 (> 0.5392) or adjusted R2 (> 0.5371) and lower value of LOOCV_RMSE (< 111435) to explain the data.
@@ -395,3 +408,13 @@ housing_data_model_interaction_aic_without_outliers = lm(latestPrice ~ zipcode +
 diagnostics(housing_data_model_interaction_aic_without_outliers)
 ```
 
+```{r, warning=FALSE}
+
+predictions_train = predict(housing_data_model_interaction_aic_without_outliers, housing_data_train)
+rmse(housing_data_train$latestPrice, predictions_train)
+
+
+predictions_test = predict(housing_data_model_interaction_aic_without_outliers, housing_data_test)
+rmse(housing_data_test$latestPrice, predictions_test)
+
+```
