@@ -122,7 +122,7 @@ austin_map + geom_point(
   data = selected_housing_data,
   alpha = 0.4,
   size = 3
-) + xlim(range(selected_housing_data$longitude)) + ylim(range(selected_housing_data$latitude)) + scale_color_distiller(palette = "Spectral") + xlab("Longitude") + ylab("Latitude") + ggtitle("Heatmap: latest sale price ($ USD) by property")
+) + xlim(range(selected_housing_data$longitude)) + ylim(range(selected_housing_data$latitude)) + scale_color_distiller(palette = "Spectral", labels = scales::comma) + xlab("Longitude") + ylab("Latitude") + ggtitle("Heatmap: latest sale price ($ USD) by property")
 ```
 
 ## 2. Train-Test split
