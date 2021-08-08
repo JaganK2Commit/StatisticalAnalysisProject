@@ -390,7 +390,7 @@ summary(housing_data_model)$adj.r.squared # 0.5509
 
 From the R2 value about 53.9% data is explained by this model and there are 46 predictors in the model. Next, we will try to find a “better” model with higher R2 (> 0.5392) or adjusted R2 (> 0.5371) and lower value of LOOCV_RMSE (< 111435) to explain the data.
 
-Interaction model has better adjusted R squared value. 0.7132 compared to additive model 0.4134
+**REVIEW THIS STATEMENT:** Interaction model has better adjusted R squared value. 0.7132 compared to additive model 0.4134
 
 ```{r warning=FALSE}
 ## Additive model AIC and BIC
@@ -463,6 +463,8 @@ anova(housing_data_model, housing_data_model_interaction)[2, "Pr(>F)"]
 
 ## 3.3. Model Selection on interactions
 
+ - Model interaction using AIC and BIC
+
 ```{r}
 housing_data_model_interaction_aic = step(housing_data_model_interaction,
                                           direction = "backward",
@@ -487,6 +489,8 @@ summary(housing_data_model_interaction_bic)$adj.r.squared
 ```
 
 ## 3.4. Diagnostics
+
+ - This is the function that pltos the graphs
 
 ```{r}
 diagnostics = function (model) {
@@ -521,7 +525,6 @@ diagnostics = function (model) {
   library(lmtest)
   bptest(model)
   shapiro.test(resid(model))
-  
 }
 
 diagnostics(housing_data_model_interaction_aic)
