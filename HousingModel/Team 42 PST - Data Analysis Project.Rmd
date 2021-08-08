@@ -286,7 +286,7 @@ housing_data_model_leaps_r2_index = which.max(housing_data_model_leaps$adjr2)  #
 
 housing_data_model_leaps$which[housing_data_model_leaps_r2_index, ]
 
-housing_data_model_leaps_best = lm(latestPrice~zipcode + propertyTaxRate + hasAssociation + yearBuilt + numPriceChanges              + numOfWaterfrontFeatures + latest_saleyear + avgSchoolSize + 
+housing_data_model_leaps_best = lm(latestPrice ~ zipcode + propertyTaxRate + hasAssociation + latest_saleyear + yearBuilt + numPriceChanges + numOfWaterfrontFeatures +  avgSchoolSize + 
                                      livingAreaSqFt + avgSchoolRating , data = housing_data_train )
 
 summary(housing_data_model_leaps_best)
@@ -301,8 +301,7 @@ anova(housing_data_model, housing_data_model_leaps_best) # p-value is <2e-16 # R
 ```{r}
 
 housing_data_model_interaction = lm(latestPrice ~ (zipcode + propertyTaxRate + hasAssociation + yearBuilt + 
-    numPriceChanges + numOfWaterfrontFeatures + latest_saleyear + 
-    avgSchoolSize + livingAreaSqFt + avgSchoolRating)^2, data = housing_data_train)
+    numPriceChanges + numOfWaterfrontFeatures + avgSchoolSize + livingAreaSqFt + latest_saleyear + avgSchoolRating)^2, data = housing_data_train)
 
 summary(housing_data_model_interaction)
 
@@ -374,26 +373,54 @@ diagnostics(housing_data_model_interaction_aic)
 cooksd = cooks.distance(housing_data_model_interaction_aic)
 
 plot(cooksd, pch="*", cex=2, main="Influential Observations by Cooks distance")  # plot cook's distance
-abline(h = 4*mean(cooksd, na.rm=T), col="blue")  # add cutoff line
+abline(h = 2*mean(cooksd, na.rm=T), col="black")  # add cutoff line
 
 text(x=1:length(cooksd)+1, y=cooksd, labels=ifelse(cooksd>2*mean(cooksd, na.rm=T),names(cooksd),""), col="red")  # add labels
 
+
+
 housing_data_model_interaction_aic_without_outliers = lm(latestPrice ~ zipcode + propertyTaxRate + hasAssociation + 
-    yearBuilt + numPriceChanges + numOfWaterfrontFeatures + latest_saleyear + 
-    avgSchoolSize + livingAreaSqFt + avgSchoolRating + zipcode:numPriceChanges + 
+    yearBuilt + numPriceChanges + numOfWaterfrontFeatures + avgSchoolSize + 
+    livingAreaSqFt + latest_saleyear + avgSchoolRating + zipcode:numPriceChanges + 
     zipcode:numOfWaterfrontFeatures + zipcode:avgSchoolSize + 
     zipcode:livingAreaSqFt + propertyTaxRate:hasAssociation + 
     propertyTaxRate:yearBuilt + propertyTaxRate:avgSchoolSize + 
     propertyTaxRate:livingAreaSqFt + propertyTaxRate:avgSchoolRating + 
     hasAssociation:yearBuilt + hasAssociation:numPriceChanges + 
-    hasAssociation:latest_saleyear + hasAssociation:avgSchoolSize + 
-    hasAssociation:livingAreaSqFt + hasAssociation:avgSchoolRating + 
-    yearBuilt:numOfWaterfrontFeatures + yearBuilt:latest_saleyear + 
-    yearBuilt:avgSchoolSize + yearBuilt:avgSchoolRating + numPriceChanges:latest_saleyear + 
-    numPriceChanges:livingAreaSqFt + latest_saleyear:avgSchoolSize + 
-    avgSchoolSize:livingAreaSqFt + avgSchoolSize:avgSchoolRating + 
-    livingAreaSqFt:avgSchoolRating, data = housing_data_train,  subset = cooksd <= 2*mean(cooksd, na.rm=T))
+    hasAssociation:avgSchoolSize + hasAssociation:livingAreaSqFt + 
+    hasAssociation:latest_saleyear + hasAssociation:avgSchoolRating + 
+    yearBuilt:numOfWaterfrontFeatures + yearBuilt:avgSchoolSize + 
+    yearBuilt:latest_saleyear + yearBuilt:avgSchoolRating + numPriceChanges:livingAreaSqFt + 
+    numPriceChanges:latest_saleyear + avgSchoolSize:livingAreaSqFt + 
+    avgSchoolSize:latest_saleyear + avgSchoolSize:avgSchoolRating + 
+    livingAreaSqFt:avgSchoolRating,  data = housing_data_train,  subset = cooksd < 2*mean(cooksd, na.rm=T))
 
 diagnostics(housing_data_model_interaction_aic_without_outliers)
+bptest(housing_data_model_interaction_aic_without_outliers)
+ 
+```
+```{r}
+library(MASS)
+boxcox(housing_data_model_interaction_aic_without_outliers, plotit = TRUE, lambda = seq(0, 1, by = 0.05))
+
+housing_data_model_interaction_aic_without_outliers = lm((((latestPrice ^ 0.5) -1)/0.5) ~ zipcode + propertyTaxRate + hasAssociation + 
+    yearBuilt + numPriceChanges + numOfWaterfrontFeatures + avgSchoolSize + 
+    livingAreaSqFt + latest_saleyear + avgSchoolRating + zipcode:numPriceChanges + 
+    zipcode:numOfWaterfrontFeatures + zipcode:avgSchoolSize + 
+    zipcode:livingAreaSqFt + propertyTaxRate:hasAssociation + 
+    propertyTaxRate:yearBuilt + propertyTaxRate:avgSchoolSize + 
+    propertyTaxRate:livingAreaSqFt + propertyTaxRate:avgSchoolRating + 
+    hasAssociation:yearBuilt + hasAssociation:numPriceChanges + 
+    hasAssociation:avgSchoolSize + hasAssociation:livingAreaSqFt + 
+    hasAssociation:latest_saleyear + hasAssociation:avgSchoolRating + 
+    yearBuilt:numOfWaterfrontFeatures + yearBuilt:avgSchoolSize + 
+    yearBuilt:latest_saleyear + yearBuilt:avgSchoolRating + numPriceChanges:livingAreaSqFt + 
+    numPriceChanges:latest_saleyear + avgSchoolSize:livingAreaSqFt + 
+    avgSchoolSize:latest_saleyear + avgSchoolSize:avgSchoolRating + 
+    livingAreaSqFt:avgSchoolRating,  data = housing_data_train,  subset = cooksd < 2*mean(cooksd, na.rm=T))
+
+diagnostics(housing_data_model_interaction_aic_without_outliers)
+bptest(housing_data_model_interaction_aic_without_outliers)
+
 ```
 
