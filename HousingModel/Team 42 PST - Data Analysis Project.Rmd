@@ -555,7 +555,9 @@ diagnostics(housing_data_model_interaction_aic_without_outliers)
 bptest(housing_data_model_interaction_aic_without_outliers)
 
 ```
-
+ 
+<br/> We used Box Cox transformation on our model to improve constant variance. As visible in box cox we can see that normal distribution mean is centered around 0.43. We tried using 0.43 to 0.50 as exponential formula as per box cox transformation and we got best model at 0.50. Our p-value for normal distribution is 0.4 howevere constant variation is still haveing low p-value. As we improved a lot based on fitted vs residual plot so we are making this as our final model after applying box cox transofrmtion.
+<br/>
 # Links and citations
 
 ## Appendix A: libraries used
