@@ -313,7 +313,7 @@ spaces_different = housing_data_train$parkingSpaces != housing_data_train$garage
 length(spaces_different[spaces_different==TRUE]) / length(spaces_different)
 ```
 
-We don't observe examples of collinearity between variables above 0.8, except for the relationship between `parkingSpaces` and `garageSpaces`. Remember that `parkingSpaces` is the number of parking spots, while `garageSpaces` represents the number of garage spaces as a subset of the `ParkingSpaces` variable. The latest may include additional parking spaces provided by common areas. These variables contain the same value in 0.23% of the observations.
+We don't observe examples of collinearity between variables above 0.8, except for the relationship between `parkingSpaces` and `garageSpaces`. Remember that `parkingSpaces` is the number of parking spots, while `garageSpaces` represents the number of garage spaces as a subset of the `ParkingSpaces` variable. The latest may include additional parking spaces provided by common areas. These variables contain the same value in 0.16% of the observations.
 
 Therefore, we'll eliminate the `garageSpaces` variable from the dataset. 
 
