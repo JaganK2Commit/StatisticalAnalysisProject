@@ -186,6 +186,9 @@ pre code {
 <li><a href="#interactive-model">3.2. Interactive model</a></li>
 <li><a href="#diagnostics">3.4. Diagnostics</a></li>
 <li><a href="#outliers">3.5. Outliers</a></li>
+</ul></li>
+<li><a href="#links-and-citations">Links and citations</a>
+<ul>
 <li><a href="#appendix-a-libraries-used">Appendix A: libraries used</a></li>
 <li><a href="#appendix-b-links">Appendix B: links</a></li>
 </ul></li>
@@ -1659,7 +1662,11 @@ diagnostics(housing_data_model_interaction_aic_without_outliers)</code></pre>
 ## data:  housing_data_model_interaction_aic_without_outliers
 ## BP = 202, df = 32, p-value &lt;2e-16</code></pre>
 <p>As seen in box cox transformation, we can see that the mean of the normal distribution is centered around 0.43. We tried using 0.43 to 0.50 as exponential formula as per the box cox transformation, and we got best model at 0.50. Our p-value for normal distribution is 0.4, however, constant variation is still showing a low p-value. As we improved a lot based on the original Fitted versus Residual plot, we are choosing the <strong>interactive model with backwards AIC without outliers (housing_data_model_interaction_aic_without_outliers)</strong> as our final model after applying box cox transformation.</p>
-<<<<<<< HEAD
+<p>Variance for original model</p>
+<pre class="r"><code>sigma(lm(latestPrice ~ ., data = housing_data_train))</code></pre>
+<pre><code>## [1] 109900</code></pre>
+<pre class="r"><code>sigma(lm(latestPrice ~ ., data = housing_data_test))</code></pre>
+<pre><code>## [1] 110702</code></pre>
 <pre class="r"><code>error_raw = sigma(housing_data_model_interaction_aic_without_outliers)
 error = (error_raw ^2 + 1) * 0.5
 error</code></pre>
@@ -1672,18 +1679,24 @@ error_raw = sigma(housing_data_model_interaction_aic_without_outliers)
 error = (error_raw ^2 + 1) * 0.5
 error</code></pre>
 <pre><code>## [1] 13722</code></pre>
-<p><br /> We are calculating error/noise with final model for test and train. We need to reverse transformation (Boxcox applied on model) on sigma of model to get final error value. These small error value shows greater accuracy of model. <br /> # Links and citations</p>
-=======
+<p><br /> We are calculating error/noise with final model for test and train. We need to reverse transformation (Boxcox applied on model) on sigma of model to get final error value. These small error value shows greater accuracy of model. <br /></p>
 <pre class="r"><code>library(Metrics)
 
 predictions_train = predict(housing_data_model_interaction_aic_without_outliers, housing_data_train)
-rmse(housing_data_train$latestPrice, predictions_train)</code></pre>
-<pre><code>## [1] 442823</code></pre>
+error_1 = rmse(((housing_data_train$latestPrice ^ 0.5 - 1)/0.5), predictions_train)
+
+(error_1 ^2 + 1) * 0.5</code></pre>
+<pre><code>## [1] 13104</code></pre>
 <pre class="r"><code>predictions_test = predict(housing_data_model_interaction_aic_without_outliers, housing_data_test)
-rmse(housing_data_test$latestPrice, predictions_test)</code></pre>
-<pre><code>## [1] 441555</code></pre>
->>>>>>> c072e8fc265aad3edef1da6e6e9d9a77bc69e6c1
+error_1 = rmse(((housing_data_test$latestPrice ^ 0.5 - 1)/0.5), predictions_train)
+
+(error_1 ^2 + 1) * 0.5</code></pre>
+<pre><code>## [1] 49501</code></pre>
+<p>RMSE Errors.</p>
 </div>
+</div>
+<div id="links-and-citations" class="section level1">
+<h1>Links and citations</h1>
 <div id="appendix-a-libraries-used" class="section level2">
 <h2>Appendix A: libraries used</h2>
 <p>The following libraries were used in the creation of this report:</p>

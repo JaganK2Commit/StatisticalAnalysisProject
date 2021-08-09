@@ -637,6 +637,12 @@ bptest(housing_data_model_interaction_aic_without_outliers)
  
 As seen in box cox transformation, we can see that the mean of the normal distribution is centered around 0.43. We tried using 0.43 to 0.50 as exponential formula as per the box cox transformation, and we got best model at 0.50. Our p-value for normal distribution is 0.4, however, constant variation is still showing a low p-value. As we improved a lot based on the original Fitted versus Residual plot, we are choosing the **interactive model with backwards AIC without outliers (housing_data_model_interaction_aic_without_outliers)** as our final model after applying box cox transformation. 
 
+Variance for original model
+```{r}
+sigma(lm(latestPrice ~ ., data = housing_data_train))
+sigma(lm(latestPrice ~ ., data = housing_data_test))
+```
+
 ```{r}
 error_raw = sigma(housing_data_model_interaction_aic_without_outliers)
 error = (error_raw ^2 + 1) * 0.5
@@ -652,6 +658,25 @@ error = (error_raw ^2 + 1) * 0.5
 error
 ```
 <br/> We are calculating error/noise with final model for test and train. We need to reverse transformation (Boxcox applied on model) on sigma of model to get final error value. These small error value shows greater accuracy of model. <br/>
+
+```{r, warning=FALSE}
+
+library(Metrics)
+
+predictions_train = predict(housing_data_model_interaction_aic_without_outliers, housing_data_train)
+error_1 = rmse(((housing_data_train$latestPrice ^ 0.5 - 1)/0.5), predictions_train)
+
+(error_1 ^2 + 1) * 0.5
+
+
+predictions_test = predict(housing_data_model_interaction_aic_without_outliers, housing_data_test)
+error_1 = rmse(((housing_data_test$latestPrice ^ 0.5 - 1)/0.5), predictions_train)
+
+(error_1 ^2 + 1) * 0.5
+
+```
+
+RMSE Errors.
 
 # Links and citations
 
