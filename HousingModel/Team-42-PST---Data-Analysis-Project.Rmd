@@ -1,6 +1,6 @@
 ---
-title: "Data Analysis Project"
-author: "STAT 420, Summer 2021. Team  42 PST: Jagadeesh Kedarisetty (jk64), Nilesh Bhandarwar (nileshb2), Peri Rocha (procha2)"
+title: "A study of housing market trends in Austin, Texas"
+author: "STAT 420, Summer 2021, Team 42 PST"
 date: "08/08/2021"
 output:
   html_document: 
@@ -14,7 +14,7 @@ urlcolor: cyan
 options(scipen = 5, digits = 4, width = 80, fig.align = "center")
 ```
 
-# 1. Introduction: a study of housing market trends in Austin, Texas
+# 1. Introduction
 
 The real estate market can be intimidating for anyone looking for a new home. For first time home buyers and experienced investors alike, news articles are citing that we're living through the hottest market in decades [^1]. 
 
@@ -698,7 +698,17 @@ Model building considered several techniques, including the use of additive or i
 
 # Links and citations
 
-## Appendix A: libraries used
+## Appendix A: about Team 42 PST
+
+Our team is formed by the following individuals: 
+
+- Jagadeesh Kedarisetty (jk64)
+
+- Nilesh Bhandarwar (nileshb2)
+
+- Peri Rocha (procha2)
+
+## Appendix B: libraries used
 
 The following libraries were used in the creation of this report: 
 
@@ -747,7 +757,7 @@ The following libraries were used in the creation of this report:
     
     https://CRAN.R-project.org/package=Metrics  
     
-## Appendix B: links
+## Appendix C: links
 
 [^1]:"How To Succeed As A First-Time Home Buyer In Today’s Market" (https://www.forbes.com/sites/forbesrealestatecouncil/2021/07/19/how-to-succeed-as-a-first-time-home-buyer-in-todays-market/?sh=79e0d37f19f8)
 [^2]:"Your 4 Most Important Financial Decisions: #1 – The House Purchase" (https://www.retirementstewardship.com/2016/05/28/4-important-financial-decisions-1-house-purchase/)
