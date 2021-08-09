@@ -220,7 +220,7 @@ Looking at the plots again, we confirm that the observations are better represen
 data_visuals(selected_housing_data)
 ```
 
-The "cleaned" dataset now offers *12,475 observations* and *38 variables*.
+The "cleaned" dataset now offers *11,493 observations* and *39 variables*.
 
 ```{r, warning=FALSE}
 str(selected_housing_data)
@@ -386,7 +386,6 @@ model_measures = function(models, names){
     loocv_rmse = sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
   
     df[i] =  c( num_of_predictors, adj_rsquare, rsquare, loocv_rmse)
-    #i = i + 1
   }
   knitr::kable(df, "simple")
 }
@@ -422,13 +421,12 @@ We'll also try to lower the value of LOOCV_RMSE (< 110989) to explain the data.
 Next, we'll investigate how well backwards AIC and BIC performs in the additive model.
 
 ```{r warning=FALSE}
-
 ## Additive model AIC and BIC
+
 housing_data_model_aic = step(housing_data_model, direction = "backward", trace = 0)
 extractAIC(housing_data_model_aic) # returns both p and AIC
-## 29 predictors
+
 summary(housing_data_model_aic)$adj.r.squared
-## [1] 0.5515
 
 housing_data_model_bic = step(
   housing_data_model,
@@ -437,15 +435,10 @@ housing_data_model_bic = step(
   k = log(nrow(housing_data_numerical))
 )
 extractAIC(housing_data_model_bic)  # returns both p and AIC
-## 20 predictors
 summary(housing_data_model_bic)$adj.r.squared
-## [1] 0.5467
-
-model_measures(list(housing_data_model, housing_data_model_aic, housing_data_model_bic), c("Additive model", "AIC model", "BIC model"))
-
 ```
 
-The adjusted $R^2$ values are 0.5515 for the AIC model, and 0.5467 for the BIC model. Both of them are inferior to the additive model before backwards AIC and BIC. 
+The adjusted $R^2$ values are `r summary(housing_data_model_aic)$adj.r.squared` for the AIC model, and `r summary(housing_data_model_bic)$adj.r.squared`` for the BIC model. Both of them are inferior to the additive model before backwards AIC and BIC. 
 
 As another attempt, we'll use exhaustive search to test every possible model and see if we can find a better one. 
 
@@ -455,13 +448,10 @@ As another attempt, we'll use exhaustive search to test every possible model and
 library(leaps)
 
 housing_data_model_leaps = summary(regsubsets(latestPrice ~ ., data = housing_data_train))
-
 housing_data_model_leaps$rss
-
 housing_data_model_leaps$adjr2
 
-housing_data_model_leaps_r2_index = which.max(housing_data_model_leaps$adjr2)  # 0.5167
-
+housing_data_model_leaps_r2_index = which.max(housing_data_model_leaps$adjr2)
 housing_data_model_leaps$which[housing_data_model_leaps_r2_index,]
 
 housing_data_model_leaps_best = lm(
@@ -470,12 +460,10 @@ housing_data_model_leaps_best = lm(
   data = housing_data_train
 )
 
-summary(housing_data_model_leaps_best)
-
-anova(housing_data_model, housing_data_model_leaps_best)
+anova(housing_data_model, housing_data_model_leaps_best)[2, "Pr(>F)"]
 ```
 
-The leaps model has a p-value < 2e-16 and therefore can be considered.
+From anova results, the p-value < 2e-16 is significantly small and null hypothesis can be rejected. Considering the leaps model, we shall continue to perform model improvements techniques.
 
 ## 3.2. Interactive model
 
@@ -492,13 +480,13 @@ housing_data_model_interaction = lm(
 
 summary(housing_data_model_interaction)
 
-length(coef(housing_data_model_interaction))## 56 predictors
+length(coef(housing_data_model_interaction))
 
-summary(housing_data_model_interaction)$r.squared # 0.5899
-summary(housing_data_model_interaction)$adj.r.squared # 0.5836
+summary(housing_data_model_interaction)$r.squared 
+summary(housing_data_model_interaction)$adj.r.squared 
 ```
 
-From the $R^2$ value, about 58.99% of data is explained by this model, with 56 predictors. The adjusted $R^2$  is 0.5836. This model is preferred over the addictive model. 
+From the $R^2$ value, about `r summary(housing_data_model_interaction)$r.squared` of data is explained by this model, with `r length(coef(housing_data_model_interaction))` predictors. The adjusted $R^2$  is `summary(housing_data_model_interaction)$adj.r.squared `. This model is preferred over the additive model. 
 
 Let's compare the interactive model with the original model: 
 
@@ -507,7 +495,6 @@ anova(housing_data_model, housing_data_model_interaction)[2, "Pr(>F)"]
 ```
 
 With a p-value of 2.438e-49, we can reject the null hypothesis and choose this model.
-
 Similarly to what we did with the additive model, we'll investigate how well backwards AIC and BIC performs in the interactive model.
 
 ```{r}
@@ -516,9 +503,7 @@ housing_data_model_interaction_aic = step(housing_data_model_interaction,
                                           trace = 0)
 extractAIC(housing_data_model_interaction_aic) # returns both p and AIC
 housing_data_model_interaction_aic
-# 31 predictors  72174
 summary(housing_data_model_interaction_aic)$adj.r.squared
-# [1] 0.5844
 
 housing_data_model_interaction_bic = step(
   housing_data_model_interaction,
@@ -528,12 +513,10 @@ housing_data_model_interaction_bic = step(
 )
 
 extractAIC(housing_data_model_interaction_bic)  # returns both p and AIC
-# 25  predictors 72189
 summary(housing_data_model_interaction_bic)$adj.r.squared
-# [1] 0.581
 ```
 
-The adjusted $R^2$ values are 0.5844 for the AIC model, and 0.581 for the BIC model. Both of them are superior to the additive model and the original model. **The interaction model with backwards AIC (housing_data_model_interaction_aic) is the preferred model so far.**
+The adjusted $R^2$ values are `r summary(housing_data_model_interaction_aic)$adj.r.squared` for the AIC model, and `r summary(housing_data_model_interaction_bic)$adj.r.squared` for the BIC model. Both of them are superior to the additive model and the original model. **The interaction model with backwards AIC (housing_data_model_interaction_aic) is the preferred model so far.**
 
 ## 3.4. Diagnostics
 
@@ -574,14 +557,13 @@ diagnostics = function (model) {
   shapiro.test(resid(model))
 }
 ```
-
 Having defined the funcion, let's visualize the plots for the chosen model **housing_data_model_interaction_aic**:
 
 ```{r}
 diagnostics(housing_data_model_interaction_aic)
 ```
 
-**TO DO: NEED COMMENTS ON THE CHARTS**
+The Fitted versus Residuals plot shows the spread of residuals for many fitted values away from zero in the order of 200.000. The Q-Q Plot and the Histogram of Residuals show data points away from the line from -2 to 1 Theoretical Quantiles. This is a suspect Q-Q plot, leading to believe that the errors **do not follow** a normal distribution. 
 
 ## 3.5. Outliers
 
@@ -609,20 +591,20 @@ Now that we've identified the outliers and stored the results in the **cooksd** 
 ```{r} 
 
 housing_data_model_interaction_aic_without_outliers = lm(
-  latestPrice ~ zipcode + propertyTaxRate + hasAssociation +
-    yearBuilt + numPriceChanges + numOfWaterfrontFeatures + avgSchoolSize +
-    livingAreaSqFt + latest_saleyear + avgSchoolRating + zipcode:numPriceChanges +
-    zipcode:numOfWaterfrontFeatures + zipcode:avgSchoolSize +
-    zipcode:livingAreaSqFt + propertyTaxRate:hasAssociation +
-    propertyTaxRate:yearBuilt + propertyTaxRate:avgSchoolSize +
-    propertyTaxRate:livingAreaSqFt + propertyTaxRate:avgSchoolRating +
-    hasAssociation:yearBuilt + hasAssociation:numPriceChanges +
-    hasAssociation:avgSchoolSize + hasAssociation:livingAreaSqFt +
-    hasAssociation:latest_saleyear + hasAssociation:avgSchoolRating +
-    yearBuilt:numOfWaterfrontFeatures + yearBuilt:avgSchoolSize +
-    yearBuilt:latest_saleyear + yearBuilt:avgSchoolRating + numPriceChanges:livingAreaSqFt +
-    numPriceChanges:latest_saleyear + avgSchoolSize:livingAreaSqFt +
-    avgSchoolSize:latest_saleyear + avgSchoolSize:avgSchoolRating +
+  latestPrice ~ zipcode + propertyTaxRate + hasAssociation + 
+    yearBuilt + numPriceChanges + numOfWaterfrontFeatures + avgSchoolSize + 
+    livingAreaSqFt + latest_saleyear + avgSchoolRating + zipcode:numPriceChanges + 
+    zipcode:numOfWaterfrontFeatures + zipcode:avgSchoolSize + 
+    zipcode:livingAreaSqFt + propertyTaxRate:hasAssociation + 
+    propertyTaxRate:yearBuilt + propertyTaxRate:avgSchoolSize + 
+    propertyTaxRate:livingAreaSqFt + propertyTaxRate:avgSchoolRating + 
+    hasAssociation:yearBuilt + hasAssociation:numPriceChanges + 
+    hasAssociation:avgSchoolSize + hasAssociation:livingAreaSqFt + 
+    hasAssociation:latest_saleyear + hasAssociation:avgSchoolRating + 
+    yearBuilt:numOfWaterfrontFeatures + yearBuilt:avgSchoolSize + 
+    yearBuilt:latest_saleyear + yearBuilt:avgSchoolRating + numPriceChanges:livingAreaSqFt + 
+    numPriceChanges:latest_saleyear + avgSchoolSize:livingAreaSqFt + 
+    avgSchoolSize:latest_saleyear + avgSchoolSize:avgSchoolRating + 
     livingAreaSqFt:avgSchoolRating,
   data = housing_data_train,
   subset = cooksd < 2 * mean(cooksd, na.rm = T)
@@ -632,7 +614,7 @@ diagnostics(housing_data_model_interaction_aic_without_outliers)
 bptest(housing_data_model_interaction_aic_without_outliers)
 ```
 
-**TO DO: NEED COMMENTS ON THE IMPROVED CHARTS**
+The Fitted versus Residuals plot shows the spread of residuals for many fitted values away from zero in the order of hundreds of thousands, but at half the distance from the mean when compared to the previous model. Also, the Q-Q Plot and the Histogram of Residuals show data points close to line, meaning errors **follow** a normal distribution. 
 
 Finally, we'll use a box cox transformation on our model to improve the constant variance.
 
