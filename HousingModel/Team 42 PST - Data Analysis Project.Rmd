@@ -109,6 +109,7 @@ selected_housing_data = subset(
   raw_housing_data,
   select = -c(
     zpid,
+    latest_salemonth,
     latest_saledate,
     latestPriceSource,
     city,
@@ -117,6 +118,7 @@ selected_housing_data = subset(
     numOfPhotos
   )
 )
+
 ```
 
 Now that we've performed basic data cleaning tasks, let's take a look at the dataset. 
@@ -380,6 +382,22 @@ length(coef(housing_data_model))
 summary(housing_data_model)$r.squared # 0.5569
 summary(housing_data_model)$adj.r.squared # 0.5509
 
+alpha = 0.01
+variables_significant =  summary(housing_data_model)$coef[, 'Pr(>|t|)'] < alpha
+variableNames_significant = names(variables_significant[variables_significant == TRUE][-1])
+
+predictors = paste(variableNames_significant, collapse = "+")
+predictors
+
+housing_data_model_significant =  lm(latestPrice ~ zipcode+longitude+propertyTaxRate+hasAssociation+yearBuilt+numPriceChanges+latest_saleyear+numOfPatioAndPorchFeatures+lotSizeSqFt+livingAreaSqFt+numOfPrimarySchools+numOfElementarySchools+numOfHighSchools+avgSchoolDistance+avgSchoolRating+avgSchoolSize+numOfBathrooms+numOfBedrooms, data = housing_data_train)
+
+anova(housing_data_model, housing_data_model_significant) # 0.000057
+
+housing_data_model = housing_data_model_significant
+
+summary(housing_data_model)$r.squared # 0.5569
+summary(housing_data_model)$adj.r.squared # 0.5509
+
 # sqrt(mean((resid(housing_data_model) / (1 - hatvalues(housing_data_model))) ^ 2))
 ```
 
@@ -574,20 +592,20 @@ Now that we've identified the outliers and stored the results in the **cooksd** 
 ```{r} 
 
 housing_data_model_interaction_aic_without_outliers = lm(
-  latestPrice ~ zipcode + propertyTaxRate + hasAssociation +
-    yearBuilt + numPriceChanges + numOfWaterfrontFeatures + avgSchoolSize +
-    livingAreaSqFt + latest_saleyear + avgSchoolRating + zipcode:numPriceChanges +
-    zipcode:numOfWaterfrontFeatures + zipcode:avgSchoolSize +
-    zipcode:livingAreaSqFt + propertyTaxRate:hasAssociation +
-    propertyTaxRate:yearBuilt + propertyTaxRate:avgSchoolSize +
-    propertyTaxRate:livingAreaSqFt + propertyTaxRate:avgSchoolRating +
-    hasAssociation:yearBuilt + hasAssociation:numPriceChanges +
-    hasAssociation:avgSchoolSize + hasAssociation:livingAreaSqFt +
-    hasAssociation:latest_saleyear + hasAssociation:avgSchoolRating +
-    yearBuilt:numOfWaterfrontFeatures + yearBuilt:avgSchoolSize +
-    yearBuilt:latest_saleyear + yearBuilt:avgSchoolRating + numPriceChanges:livingAreaSqFt +
-    numPriceChanges:latest_saleyear + avgSchoolSize:livingAreaSqFt +
-    avgSchoolSize:latest_saleyear + avgSchoolSize:avgSchoolRating +
+  latestPrice ~ zipcode + propertyTaxRate + hasAssociation + 
+    yearBuilt + numPriceChanges + numOfWaterfrontFeatures + avgSchoolSize + 
+    livingAreaSqFt + latest_saleyear + avgSchoolRating + zipcode:numPriceChanges + 
+    zipcode:numOfWaterfrontFeatures + zipcode:avgSchoolSize + 
+    zipcode:livingAreaSqFt + propertyTaxRate:hasAssociation + 
+    propertyTaxRate:yearBuilt + propertyTaxRate:avgSchoolSize + 
+    propertyTaxRate:livingAreaSqFt + propertyTaxRate:avgSchoolRating + 
+    hasAssociation:yearBuilt + hasAssociation:numPriceChanges + 
+    hasAssociation:avgSchoolSize + hasAssociation:livingAreaSqFt + 
+    hasAssociation:latest_saleyear + hasAssociation:avgSchoolRating + 
+    yearBuilt:numOfWaterfrontFeatures + yearBuilt:avgSchoolSize + 
+    yearBuilt:latest_saleyear + yearBuilt:avgSchoolRating + numPriceChanges:livingAreaSqFt + 
+    numPriceChanges:latest_saleyear + avgSchoolSize:livingAreaSqFt + 
+    avgSchoolSize:latest_saleyear + avgSchoolSize:avgSchoolRating + 
     livingAreaSqFt:avgSchoolRating,
   data = housing_data_train,
   subset = cooksd < 2 * mean(cooksd, na.rm = T)
@@ -621,6 +639,7 @@ bptest(housing_data_model_interaction_aic_without_outliers)
  
 As seen in box cox transformation, we can see that the mean of the normal distribution is centered around 0.43. We tried using 0.43 to 0.50 as exponential formula as per the box cox transformation, and we got best model at 0.50. Our p-value for normal distribution is 0.4, however, constant variation is still showing a low p-value. As we improved a lot based on the original Fitted versus Residual plot, we are choosing the **interactive model with backwards AIC without outliers (housing_data_model_interaction_aic_without_outliers)** as our final model after applying box cox transformation. 
 
+<<<<<<< HEAD
 ```{r}
 error_raw = sigma(housing_data_model_interaction_aic_without_outliers)
 error = (error_raw ^2 + 1) * 0.5
@@ -636,6 +655,22 @@ error = (error_raw ^2 + 1) * 0.5
 error
 ```
 <br/> We are calculating error/noise with final model for test and train. We need to reverse transformation (Boxcox applied on model) on sigma of model to get final error value. These small error value shows greater accuracy of model. <br/>
+=======
+
+```{r, warning=FALSE}
+
+library(Metrics)
+
+predictions_train = predict(housing_data_model_interaction_aic_without_outliers, housing_data_train)
+rmse(housing_data_train$latestPrice, predictions_train)
+
+
+predictions_test = predict(housing_data_model_interaction_aic_without_outliers, housing_data_test)
+rmse(housing_data_test$latestPrice, predictions_test)
+
+```
+
+>>>>>>> c072e8fc265aad3edef1da6e6e9d9a77bc69e6c1
 # Links and citations
 
 ## Appendix A: libraries used

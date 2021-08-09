@@ -283,6 +283,7 @@ selected_housing_data = subset(
   raw_housing_data,
   select = -c(
     zpid,
+    latest_salemonth,
     latest_saledate,
     latestPriceSource,
     city,
@@ -307,13 +308,13 @@ selected_housing_data = subset(
 ## 4       TRUE      TRUE       TRUE  FALSE   FALSE Single Family             2
 ## 5       TRUE     FALSE       TRUE  FALSE   FALSE Single Family             0
 ## 6       TRUE      TRUE       TRUE  FALSE   FALSE Single Family             2
-##   yearBuilt latestPrice numPriceChanges latest_salemonth latest_saleyear
-## 1      2012      305000               5                9            2019
-## 2      2013      295000               1               10            2020
-## 3      2018      256125               1                7            2019
-## 4      2013      240000               4                8            2018
-## 5      2002      239900               3               10            2018
-## 6      2020      309045               2                8            2020
+##   yearBuilt latestPrice numPriceChanges latest_saleyear
+## 1      2012      305000               5            2019
+## 2      2013      295000               1            2020
+## 3      2018      256125               1            2019
+## 4      2013      240000               4            2018
+## 5      2002      239900               3            2018
+## 6      2020      309045               2            2020
 ##   numOfAccessibilityFeatures numOfAppliances numOfParkingFeatures
 ## 1                          0               5                    2
 ## 2                          0               1                    2
@@ -382,69 +383,61 @@ selected_housing_data = subset(
 ##                                  Vacant Land       :   83   3rd Qu.: 2.00  
 ##                                  Apartment         :   37   Max.   :22.00  
 ##                                  (Other)           :   70                  
-##    yearBuilt     latestPrice       numPriceChanges latest_salemonth
-##  Min.   :1905   Min.   :    5500   Min.   : 1.00   Min.   : 1.00   
-##  1st Qu.:1974   1st Qu.:  309000   1st Qu.: 1.00   1st Qu.: 4.00   
-##  Median :1993   Median :  405000   Median : 2.00   Median : 7.00   
-##  Mean   :1989   Mean   :  512768   Mean   : 3.03   Mean   : 6.73   
-##  3rd Qu.:2006   3rd Qu.:  575000   3rd Qu.: 4.00   3rd Qu.: 9.00   
-##  Max.   :2020   Max.   :13500000   Max.   :23.00   Max.   :12.00   
-##                                                                    
-##  latest_saleyear numOfAccessibilityFeatures numOfAppliances
-##  Min.   :2018    Min.   :0.000              Min.   : 0.00  
-##  1st Qu.:2018    1st Qu.:0.000              1st Qu.: 2.00  
-##  Median :2019    Median :0.000              Median : 3.00  
-##  Mean   :2019    Mean   :0.013              Mean   : 3.48  
-##  3rd Qu.:2020    3rd Qu.:0.000              3rd Qu.: 4.00  
-##  Max.   :2021    Max.   :8.000              Max.   :12.00  
-##                                                            
-##  numOfParkingFeatures numOfPatioAndPorchFeatures numOfSecurityFeatures
-##  Min.   :0.00         Min.   :0.000              Min.   :0.000        
-##  1st Qu.:1.00         1st Qu.:0.000              1st Qu.:0.000        
-##  Median :2.00         Median :0.000              Median :0.000        
-##  Mean   :1.71         Mean   :0.663              Mean   :0.467        
-##  3rd Qu.:2.00         3rd Qu.:1.000              3rd Qu.:1.000        
-##  Max.   :6.00         Max.   :8.000              Max.   :6.000        
-##                                                                       
-##  numOfWaterfrontFeatures numOfWindowFeatures numOfCommunityFeatures
-##  Min.   :0.0000          Min.   :0.000       Min.   :0.000         
-##  1st Qu.:0.0000          1st Qu.:0.000       1st Qu.:0.000         
-##  Median :0.0000          Median :0.000       Median :0.000         
-##  Mean   :0.0028          Mean   :0.208       Mean   :0.019         
-##  3rd Qu.:0.0000          3rd Qu.:0.000       3rd Qu.:0.000         
-##  Max.   :2.0000          Max.   :4.000       Max.   :8.000         
-##                                                                    
-##   lotSizeSqFt       livingAreaSqFt   numOfPrimarySchools numOfElementarySchools
-##  Min.   :1.00e+02   Min.   :   300   Min.   :0.000       Min.   :0.0000        
-##  1st Qu.:6.53e+03   1st Qu.:  1483   1st Qu.:1.000       1st Qu.:0.0000        
-##  Median :8.28e+03   Median :  1975   Median :1.000       Median :0.0000        
-##  Mean   :1.19e+05   Mean   :  2208   Mean   :0.941       Mean   :0.0492        
-##  3rd Qu.:1.09e+04   3rd Qu.:  2687   3rd Qu.:1.000       3rd Qu.:0.0000        
-##  Max.   :1.51e+09   Max.   :109292   Max.   :2.000       Max.   :2.0000        
+##    yearBuilt     latestPrice       numPriceChanges latest_saleyear
+##  Min.   :1905   Min.   :    5500   Min.   : 1.00   Min.   :2018   
+##  1st Qu.:1974   1st Qu.:  309000   1st Qu.: 1.00   1st Qu.:2018   
+##  Median :1993   Median :  405000   Median : 2.00   Median :2019   
+##  Mean   :1989   Mean   :  512768   Mean   : 3.03   Mean   :2019   
+##  3rd Qu.:2006   3rd Qu.:  575000   3rd Qu.: 4.00   3rd Qu.:2020   
+##  Max.   :2020   Max.   :13500000   Max.   :23.00   Max.   :2021   
+##                                                                   
+##  numOfAccessibilityFeatures numOfAppliances numOfParkingFeatures
+##  Min.   :0.000              Min.   : 0.00   Min.   :0.00        
+##  1st Qu.:0.000              1st Qu.: 2.00   1st Qu.:1.00        
+##  Median :0.000              Median : 3.00   Median :2.00        
+##  Mean   :0.013              Mean   : 3.48   Mean   :1.71        
+##  3rd Qu.:0.000              3rd Qu.: 4.00   3rd Qu.:2.00        
+##  Max.   :8.000              Max.   :12.00   Max.   :6.00        
+##                                                                 
+##  numOfPatioAndPorchFeatures numOfSecurityFeatures numOfWaterfrontFeatures
+##  Min.   :0.000              Min.   :0.000         Min.   :0.0000         
+##  1st Qu.:0.000              1st Qu.:0.000         1st Qu.:0.0000         
+##  Median :0.000              Median :0.000         Median :0.0000         
+##  Mean   :0.663              Mean   :0.467         Mean   :0.0028         
+##  3rd Qu.:1.000              3rd Qu.:1.000         3rd Qu.:0.0000         
+##  Max.   :8.000              Max.   :6.000         Max.   :2.0000         
+##                                                                          
+##  numOfWindowFeatures numOfCommunityFeatures  lotSizeSqFt       livingAreaSqFt  
+##  Min.   :0.000       Min.   :0.000          Min.   :1.00e+02   Min.   :   300  
+##  1st Qu.:0.000       1st Qu.:0.000          1st Qu.:6.53e+03   1st Qu.:  1483  
+##  Median :0.000       Median :0.000          Median :8.28e+03   Median :  1975  
+##  Mean   :0.208       Mean   :0.019          Mean   :1.19e+05   Mean   :  2208  
+##  3rd Qu.:0.000       3rd Qu.:0.000          3rd Qu.:1.09e+04   3rd Qu.:  2687  
+##  Max.   :4.000       Max.   :8.000          Max.   :1.51e+09   Max.   :109292  
 ##                                                                                
-##  numOfMiddleSchools numOfHighSchools avgSchoolDistance avgSchoolRating
-##  Min.   :0.00       Min.   :0.000    Min.   :0.20      Min.   :2.33   
-##  1st Qu.:1.00       1st Qu.:1.000    1st Qu.:1.10      1st Qu.:4.00   
-##  Median :1.00       Median :1.000    Median :1.57      Median :5.78   
-##  Mean   :1.04       Mean   :0.977    Mean   :1.84      Mean   :5.78   
-##  3rd Qu.:1.00       3rd Qu.:1.000    3rd Qu.:2.27      3rd Qu.:7.00   
-##  Max.   :3.00       Max.   :2.000    Max.   :9.00      Max.   :9.50   
-##                                                                       
-##  avgSchoolSize  MedianStudentsPerTeacher numOfBathrooms  numOfBedrooms  
-##  Min.   : 396   Min.   :10.0             Min.   : 0.00   Min.   : 0.00  
-##  1st Qu.: 966   1st Qu.:14.0             1st Qu.: 2.00   1st Qu.: 3.00  
-##  Median :1287   Median :15.0             Median : 3.00   Median : 3.00  
-##  Mean   :1237   Mean   :14.9             Mean   : 2.68   Mean   : 3.44  
-##  3rd Qu.:1496   3rd Qu.:16.0             3rd Qu.: 3.00   3rd Qu.: 4.00  
-##  Max.   :1913   Max.   :19.0             Max.   :27.00   Max.   :20.00  
-##                                                                         
-##   numOfStories 
-##  Min.   :1.00  
-##  1st Qu.:1.00  
-##  Median :1.00  
-##  Mean   :1.47  
-##  3rd Qu.:2.00  
-##  Max.   :4.00  
+##  numOfPrimarySchools numOfElementarySchools numOfMiddleSchools numOfHighSchools
+##  Min.   :0.000       Min.   :0.0000         Min.   :0.00       Min.   :0.000   
+##  1st Qu.:1.000       1st Qu.:0.0000         1st Qu.:1.00       1st Qu.:1.000   
+##  Median :1.000       Median :0.0000         Median :1.00       Median :1.000   
+##  Mean   :0.941       Mean   :0.0492         Mean   :1.04       Mean   :0.977   
+##  3rd Qu.:1.000       3rd Qu.:0.0000         3rd Qu.:1.00       3rd Qu.:1.000   
+##  Max.   :2.000       Max.   :2.0000         Max.   :3.00       Max.   :2.000   
+##                                                                                
+##  avgSchoolDistance avgSchoolRating avgSchoolSize  MedianStudentsPerTeacher
+##  Min.   :0.20      Min.   :2.33    Min.   : 396   Min.   :10.0            
+##  1st Qu.:1.10      1st Qu.:4.00    1st Qu.: 966   1st Qu.:14.0            
+##  Median :1.57      Median :5.78    Median :1287   Median :15.0            
+##  Mean   :1.84      Mean   :5.78    Mean   :1237   Mean   :14.9            
+##  3rd Qu.:2.27      3rd Qu.:7.00    3rd Qu.:1496   3rd Qu.:16.0            
+##  Max.   :9.00      Max.   :9.50    Max.   :1913   Max.   :19.0            
+##                                                                           
+##  numOfBathrooms  numOfBedrooms    numOfStories 
+##  Min.   : 0.00   Min.   : 0.00   Min.   :1.00  
+##  1st Qu.: 2.00   1st Qu.: 3.00   1st Qu.:1.00  
+##  Median : 3.00   Median : 3.00   Median :1.00  
+##  Mean   : 2.68   Mean   : 3.44   Mean   :1.47  
+##  3rd Qu.: 3.00   3rd Qu.: 4.00   3rd Qu.:2.00  
+##  Max.   :27.00   Max.   :20.00   Max.   :4.00  
 ## </code></pre>
 <p>Some of the variables demonstrate strange min and max values when compared to their mean: <code>avgSchoolDistance</code>, <code>livingAreaSqFt</code>, <code>lotSizeSqFt</code>, <code>numOfBedrooms</code>, and <code>numOfBathrooms</code>. We’ll plot the observations of these variables in charts to better understand if they are outliers.</p>
 <pre class="r"><code>dataVisuals = function(data) {
@@ -526,7 +519,7 @@ selected_housing_data = na.omit(selected_housing_data
 <p><img src="data:image/png;base64,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" width="672" /></p>
 <p>The “cleaned” dataset now offers <em>11,493 observations</em> and <em>39 variables</em>.</p>
 <pre class="r"><code>str(selected_housing_data)</code></pre>
-<pre><code>## &#39;data.frame&#39;:    12475 obs. of  39 variables:
+<pre><code>## &#39;data.frame&#39;:    12475 obs. of  38 variables:
 ##  $ zipcode                   : int  78660 78660 78660 78660 78660 78660 78660 78660 78660 78617 ...
 ##  $ latitude                  : num  30.4 30.4 30.4 30.4 30.4 ...
 ##  $ longitude                 : num  -97.7 -97.7 -97.6 -97.7 -97.7 ...
@@ -543,7 +536,6 @@ selected_housing_data = na.omit(selected_housing_data
 ##  $ yearBuilt                 : int  2012 2013 2018 2013 2002 2020 2016 2002 2002 2013 ...
 ##  $ latestPrice               : int  305000 295000 256125 240000 239900 309045 315000 219900 225000 194800 ...
 ##  $ numPriceChanges           : int  5 1 1 4 3 2 2 2 1 1 ...
-##  $ latest_salemonth          : int  9 10 7 8 10 8 6 10 9 9 ...
 ##  $ latest_saleyear           : int  2019 2020 2019 2018 2018 2020 2020 2018 2019 2018 ...
 ##  $ numOfAccessibilityFeatures: int  0 0 0 0 0 0 0 0 0 0 ...
 ##  $ numOfAppliances           : int  5 1 4 0 0 3 3 3 2 3 ...
@@ -645,7 +637,6 @@ housing_data_numerical = housing_data_train[, num_cols]
 ## yearBuilt                    -0.02    -0.11     -0.19            0.13
 ## latestPrice                  -0.15     0.14     -0.27           -0.03
 ## numPriceChanges              -0.05     0.00     -0.04           -0.02
-## latest_salemonth              0.01     0.01     -0.02            0.00
 ## latest_saleyear              -0.04    -0.04     -0.02           -0.01
 ## numOfAccessibilityFeatures   -0.03     0.00      0.03           -0.01
 ## numOfAppliances               0.03    -0.01     -0.01           -0.01
@@ -678,7 +669,6 @@ housing_data_numerical = housing_data_train[, num_cols]
 ## yearBuilt                          0.04          0.05      1.00       -0.08
 ## latestPrice                        0.14          0.14     -0.08        1.00
 ## numPriceChanges                    0.10          0.10     -0.05       -0.05
-## latest_salemonth                   0.08          0.08     -0.01        0.06
 ## latest_saleyear                    0.34          0.34      0.01        0.13
 ## numOfAccessibilityFeatures         0.05          0.05      0.03        0.05
 ## numOfAppliances                    0.15          0.15      0.09        0.04
@@ -701,39 +691,38 @@ housing_data_numerical = housing_data_train[, num_cols]
 ## numOfBathrooms                     0.12          0.12      0.52        0.34
 ## numOfBedrooms                      0.09          0.09      0.24        0.26
 ## numOfStories                       0.06          0.06      0.41        0.18
-##                            numPriceChanges latest_salemonth latest_saleyear
-## zipcode                              -0.05             0.01           -0.04
-## latitude                              0.00             0.01           -0.04
-## longitude                            -0.04            -0.02           -0.02
-## propertyTaxRate                      -0.02             0.00           -0.01
-## garageSpaces                          0.10             0.08            0.34
-## parkingSpaces                         0.10             0.08            0.34
-## yearBuilt                            -0.05            -0.01            0.01
-## latestPrice                          -0.05             0.06            0.13
-## numPriceChanges                       1.00            -0.01            0.00
-## latest_salemonth                     -0.01             1.00            0.00
-## latest_saleyear                       0.00             0.00            1.00
-## numOfAccessibilityFeatures           -0.04             0.08            0.08
-## numOfAppliances                       0.07             0.05            0.09
-## numOfParkingFeatures                  0.11             0.01            0.25
-## numOfPatioAndPorchFeatures           -0.03             0.23            0.53
-## numOfSecurityFeatures                -0.03             0.15            0.41
-## numOfWaterfrontFeatures               0.01            -0.02            0.04
-## numOfWindowFeatures                   0.00             0.05            0.26
-## numOfCommunityFeatures                0.04             0.06            0.05
-## lotSizeSqFt                           0.01             0.02           -0.05
-## livingAreaSqFt                        0.09             0.00           -0.03
-## numOfPrimarySchools                  -0.02            -0.02            0.03
-## numOfElementarySchools               -0.01             0.00           -0.04
-## numOfMiddleSchools                    0.01             0.02           -0.03
-## numOfHighSchools                     -0.05            -0.03           -0.01
-## avgSchoolDistance                    -0.03            -0.01            0.00
-## avgSchoolRating                       0.02             0.03           -0.03
-## avgSchoolSize                        -0.04             0.00           -0.03
-## MedianStudentsPerTeacher              0.03             0.01            0.00
-## numOfBathrooms                        0.08             0.02            0.00
-## numOfBedrooms                         0.07             0.04           -0.01
-## numOfStories                          0.06            -0.02           -0.03
+##                            numPriceChanges latest_saleyear
+## zipcode                              -0.05           -0.04
+## latitude                              0.00           -0.04
+## longitude                            -0.04           -0.02
+## propertyTaxRate                      -0.02           -0.01
+## garageSpaces                          0.10            0.34
+## parkingSpaces                         0.10            0.34
+## yearBuilt                            -0.05            0.01
+## latestPrice                          -0.05            0.13
+## numPriceChanges                       1.00            0.00
+## latest_saleyear                       0.00            1.00
+## numOfAccessibilityFeatures           -0.04            0.08
+## numOfAppliances                       0.07            0.09
+## numOfParkingFeatures                  0.11            0.25
+## numOfPatioAndPorchFeatures           -0.03            0.53
+## numOfSecurityFeatures                -0.03            0.41
+## numOfWaterfrontFeatures               0.01            0.04
+## numOfWindowFeatures                   0.00            0.26
+## numOfCommunityFeatures                0.04            0.05
+## lotSizeSqFt                           0.01           -0.05
+## livingAreaSqFt                        0.09           -0.03
+## numOfPrimarySchools                  -0.02            0.03
+## numOfElementarySchools               -0.01           -0.04
+## numOfMiddleSchools                    0.01           -0.03
+## numOfHighSchools                     -0.05           -0.01
+## avgSchoolDistance                    -0.03            0.00
+## avgSchoolRating                       0.02           -0.03
+## avgSchoolSize                        -0.04           -0.03
+## MedianStudentsPerTeacher              0.03            0.00
+## numOfBathrooms                        0.08            0.00
+## numOfBedrooms                         0.07           -0.01
+## numOfStories                          0.06           -0.03
 ##                            numOfAccessibilityFeatures numOfAppliances
 ## zipcode                                         -0.03            0.03
 ## latitude                                         0.00           -0.01
@@ -744,7 +733,6 @@ housing_data_numerical = housing_data_train[, num_cols]
 ## yearBuilt                                        0.03            0.09
 ## latestPrice                                      0.05            0.04
 ## numPriceChanges                                 -0.04            0.07
-## latest_salemonth                                 0.08            0.05
 ## latest_saleyear                                  0.08            0.09
 ## numOfAccessibilityFeatures                       1.00            0.03
 ## numOfAppliances                                  0.03            1.00
@@ -777,7 +765,6 @@ housing_data_numerical = housing_data_train[, num_cols]
 ## yearBuilt                                  0.00                       0.02
 ## latestPrice                                0.11                       0.17
 ## numPriceChanges                            0.11                      -0.03
-## latest_salemonth                           0.01                       0.23
 ## latest_saleyear                            0.25                       0.53
 ## numOfAccessibilityFeatures                 0.05                       0.11
 ## numOfAppliances                            0.16                       0.15
@@ -810,7 +797,6 @@ housing_data_numerical = housing_data_train[, num_cols]
 ## yearBuilt                                   0.14                   -0.02
 ## latestPrice                                 0.11                    0.04
 ## numPriceChanges                            -0.03                    0.01
-## latest_salemonth                            0.15                   -0.02
 ## latest_saleyear                             0.41                    0.04
 ## numOfAccessibilityFeatures                  0.05                    0.00
 ## numOfAppliances                             0.17                   -0.02
@@ -843,7 +829,6 @@ housing_data_numerical = housing_data_train[, num_cols]
 ## yearBuilt                                 0.04                   0.02
 ## latestPrice                               0.14                   0.04
 ## numPriceChanges                           0.00                   0.04
-## latest_salemonth                          0.05                   0.06
 ## latest_saleyear                           0.26                   0.05
 ## numOfAccessibilityFeatures               -0.02                   0.02
 ## numOfAppliances                           0.10                   0.08
@@ -876,7 +861,6 @@ housing_data_numerical = housing_data_train[, num_cols]
 ## yearBuilt                        -0.15           0.41               -0.06
 ## latestPrice                       0.31           0.48               -0.14
 ## numPriceChanges                   0.01           0.09               -0.02
-## latest_salemonth                  0.02           0.00               -0.02
 ## latest_saleyear                  -0.05          -0.03                0.03
 ## numOfAccessibilityFeatures       -0.05          -0.02                0.01
 ## numOfAppliances                  -0.06           0.03                0.01
@@ -909,7 +893,6 @@ housing_data_numerical = housing_data_train[, num_cols]
 ## yearBuilt                                    0.04               0.08
 ## latestPrice                                  0.11               0.12
 ## numPriceChanges                             -0.01               0.01
-## latest_salemonth                             0.00               0.02
 ## latest_saleyear                             -0.04              -0.03
 ## numOfAccessibilityFeatures                   0.00              -0.01
 ## numOfAppliances                             -0.01               0.01
@@ -942,7 +925,6 @@ housing_data_numerical = housing_data_train[, num_cols]
 ## yearBuilt                              0.10              0.32            0.11
 ## latestPrice                           -0.23             -0.11            0.46
 ## numPriceChanges                       -0.05             -0.03            0.02
-## latest_salemonth                      -0.03             -0.01            0.03
 ## latest_saleyear                       -0.01              0.00           -0.03
 ## numOfAccessibilityFeatures            -0.01             -0.02           -0.01
 ## numOfAppliances                       -0.01              0.00            0.02
@@ -975,7 +957,6 @@ housing_data_numerical = housing_data_train[, num_cols]
 ## yearBuilt                           0.34                     0.07
 ## latestPrice                         0.10                     0.35
 ## numPriceChanges                    -0.04                     0.03
-## latest_salemonth                    0.00                     0.01
 ## latest_saleyear                    -0.03                     0.00
 ## numOfAccessibilityFeatures         -0.01                    -0.01
 ## numOfAppliances                     0.04                     0.02
@@ -1008,7 +989,6 @@ housing_data_numerical = housing_data_train[, num_cols]
 ## yearBuilt                            0.52          0.24         0.41
 ## latestPrice                          0.34          0.26         0.18
 ## numPriceChanges                      0.08          0.07         0.06
-## latest_salemonth                     0.02          0.04        -0.02
 ## latest_saleyear                      0.00         -0.01        -0.03
 ## numOfAccessibilityFeatures          -0.01         -0.04         0.03
 ## numOfAppliances                      0.08          0.01         0.06
@@ -1056,11 +1036,11 @@ nlargest(coll_matrix, n = 45)$values[nlargest(coll_matrix, n = 45)$values &lt; 1
 vif = vif(housing_data_model)
 sort(vif[which(vif &gt; 5)], decreasing = TRUE)</code></pre>
 <pre><code>##      homeTypeSingle Family              homeTypeCondo 
-##                    164.602                    115.374 
+##                    164.488                    115.289 
 ##          homeTypeTownhouse homeTypeMultiple Occupancy 
-##                     36.989                     11.373 
+##                     36.950                     11.364 
 ##        homeTypeResidential              hasGarageTRUE 
-##                      5.823                      5.369</code></pre>
+##                      5.812                      5.369</code></pre>
 <p>the homeType predictor will be key in our analysis, so we’ve decided to keep it in the model. However, variable <code>hasGarage</code> shows a VIF greater than 5, which may be a concern. What proportion of the observed variation in latestPrice is explained by a linear relationship with <code>hasGarage</code>?</p>
 <pre class="r"><code>summary(lm(hasGarage ~ . - latestPrice, data = housing_data_train))$r.squared</code></pre>
 <pre><code>## [1] 0.8137</code></pre>
@@ -1068,11 +1048,11 @@ sort(vif[which(vif &gt; 5)], decreasing = TRUE)</code></pre>
 vif_non_significant = vif(housing_data_model_non_significant)
 vif_non_significant[which(vif_non_significant &gt; 5)]</code></pre>
 <pre><code>##              homeTypeCondo homeTypeMultiple Occupancy 
-##                    112.850                     11.176 
+##                    112.768                     11.167 
 ##        homeTypeResidential      homeTypeSingle Family 
-##                      5.676                    161.207 
+##                      5.664                    161.098 
 ##          homeTypeTownhouse 
-##                     36.232</code></pre>
+##                     36.195</code></pre>
 <pre class="r"><code>#Finally, compare both models
 (anova_results = anova(housing_data_model, housing_data_model_non_significant))</code></pre>
 <pre><code>## Analysis of Variance Table
@@ -1080,26 +1060,26 @@ vif_non_significant[which(vif_non_significant &gt; 5)]</code></pre>
 ## Model 1: latestPrice ~ zipcode + latitude + longitude + propertyTaxRate + 
 ##     hasAssociation + hasCooling + hasGarage + hasHeating + hasSpa + 
 ##     hasView + homeType + parkingSpaces + yearBuilt + numPriceChanges + 
-##     latest_salemonth + latest_saleyear + numOfAccessibilityFeatures + 
-##     numOfAppliances + numOfParkingFeatures + numOfPatioAndPorchFeatures + 
-##     numOfSecurityFeatures + numOfWaterfrontFeatures + numOfWindowFeatures + 
-##     numOfCommunityFeatures + lotSizeSqFt + livingAreaSqFt + numOfPrimarySchools + 
-##     numOfElementarySchools + numOfMiddleSchools + numOfHighSchools + 
-##     avgSchoolDistance + avgSchoolRating + avgSchoolSize + MedianStudentsPerTeacher + 
+##     latest_saleyear + numOfAccessibilityFeatures + numOfAppliances + 
+##     numOfParkingFeatures + numOfPatioAndPorchFeatures + numOfSecurityFeatures + 
+##     numOfWaterfrontFeatures + numOfWindowFeatures + numOfCommunityFeatures + 
+##     lotSizeSqFt + livingAreaSqFt + numOfPrimarySchools + numOfElementarySchools + 
+##     numOfMiddleSchools + numOfHighSchools + avgSchoolDistance + 
+##     avgSchoolRating + avgSchoolSize + MedianStudentsPerTeacher + 
 ##     numOfBathrooms + numOfBedrooms + numOfStories
 ## Model 2: latestPrice ~ (zipcode + latitude + longitude + propertyTaxRate + 
 ##     hasAssociation + hasCooling + hasGarage + hasHeating + hasSpa + 
 ##     hasView + homeType + parkingSpaces + yearBuilt + numPriceChanges + 
-##     latest_salemonth + latest_saleyear + numOfAccessibilityFeatures + 
-##     numOfAppliances + numOfParkingFeatures + numOfPatioAndPorchFeatures + 
-##     numOfSecurityFeatures + numOfWaterfrontFeatures + numOfWindowFeatures + 
-##     numOfCommunityFeatures + lotSizeSqFt + livingAreaSqFt + numOfPrimarySchools + 
-##     numOfElementarySchools + numOfMiddleSchools + numOfHighSchools + 
-##     avgSchoolDistance + avgSchoolRating + avgSchoolSize + MedianStudentsPerTeacher + 
+##     latest_saleyear + numOfAccessibilityFeatures + numOfAppliances + 
+##     numOfParkingFeatures + numOfPatioAndPorchFeatures + numOfSecurityFeatures + 
+##     numOfWaterfrontFeatures + numOfWindowFeatures + numOfCommunityFeatures + 
+##     lotSizeSqFt + livingAreaSqFt + numOfPrimarySchools + numOfElementarySchools + 
+##     numOfMiddleSchools + numOfHighSchools + avgSchoolDistance + 
+##     avgSchoolRating + avgSchoolSize + MedianStudentsPerTeacher + 
 ##     numOfBathrooms + numOfBedrooms + numOfStories) - hasGarage
 ##   Res.Df      RSS Df Sum of Sq    F Pr(&gt;F)
-## 1   3074 3.71e+13                         
-## 2   3075 3.71e+13 -1 -67826036 0.01   0.94</code></pre>
+## 1   3075 3.71e+13                         
+## 2   3076 3.71e+13 -1 -79148314 0.01   0.94</code></pre>
 <p>When we compare the model with all predictor versus one that does not include the hasGarage predictor, we see the p-value significant at 0.94, so we fail to reject the null hypothesis. Therefore, we’ll remove the hasGarage predictor from the analysis.</p>
 <pre class="r"><code># As p-value is significant (0.94), we fail to reject and consider remove hasGarage predictor.
 housing_data_train = subset(housing_data_train, select = -c(hasGarage))</code></pre>
@@ -1114,13 +1094,51 @@ housing_data_train = subset(housing_data_train, select = -c(hasGarage))</code></
 <pre class="r"><code>housing_data_model = lm(latestPrice ~ ., data = housing_data_train)
 
 length(coef(housing_data_model))</code></pre>
-<pre><code>## [1] 43</code></pre>
+<pre><code>## [1] 42</code></pre>
 <pre class="r"><code>## 43 predictors
 
 summary(housing_data_model)$r.squared # 0.5569</code></pre>
-<pre><code>## [1] 0.5569</code></pre>
+<pre><code>## [1] 0.5565</code></pre>
 <pre class="r"><code>summary(housing_data_model)$adj.r.squared # 0.5509</code></pre>
-<pre><code>## [1] 0.5509</code></pre>
+<pre><code>## [1] 0.5506</code></pre>
+<pre class="r"><code>alpha = 0.01
+variables_significant =  summary(housing_data_model)$coef[, &#39;Pr(&gt;|t|)&#39;] &lt; alpha
+variableNames_significant = names(variables_significant[variables_significant == TRUE][-1])
+
+predictors = paste(variableNames_significant, collapse = &quot;+&quot;)
+predictors</code></pre>
+<pre><code>## [1] &quot;zipcode+longitude+propertyTaxRate+hasAssociationTRUE+yearBuilt+numPriceChanges+latest_saleyear+numOfPatioAndPorchFeatures+lotSizeSqFt+livingAreaSqFt+numOfPrimarySchools+numOfElementarySchools+numOfHighSchools+avgSchoolDistance+avgSchoolRating+avgSchoolSize+numOfBathrooms+numOfBedrooms&quot;</code></pre>
+<pre class="r"><code>housing_data_model_significant =  lm(latestPrice ~ zipcode+longitude+propertyTaxRate+hasAssociation+yearBuilt+numPriceChanges+latest_saleyear+numOfPatioAndPorchFeatures+lotSizeSqFt+livingAreaSqFt+numOfPrimarySchools+numOfElementarySchools+numOfHighSchools+avgSchoolDistance+avgSchoolRating+avgSchoolSize+numOfBathrooms+numOfBedrooms, data = housing_data_train)
+
+anova(housing_data_model, housing_data_model_significant) # 0.000057</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Model 1: latestPrice ~ zipcode + latitude + longitude + propertyTaxRate + 
+##     hasAssociation + hasCooling + hasHeating + hasSpa + hasView + 
+##     homeType + parkingSpaces + yearBuilt + numPriceChanges + 
+##     latest_saleyear + numOfAccessibilityFeatures + numOfAppliances + 
+##     numOfParkingFeatures + numOfPatioAndPorchFeatures + numOfSecurityFeatures + 
+##     numOfWaterfrontFeatures + numOfWindowFeatures + numOfCommunityFeatures + 
+##     lotSizeSqFt + livingAreaSqFt + numOfPrimarySchools + numOfElementarySchools + 
+##     numOfMiddleSchools + numOfHighSchools + avgSchoolDistance + 
+##     avgSchoolRating + avgSchoolSize + MedianStudentsPerTeacher + 
+##     numOfBathrooms + numOfBedrooms + numOfStories
+## Model 2: latestPrice ~ zipcode + longitude + propertyTaxRate + hasAssociation + 
+##     yearBuilt + numPriceChanges + latest_saleyear + numOfPatioAndPorchFeatures + 
+##     lotSizeSqFt + livingAreaSqFt + numOfPrimarySchools + numOfElementarySchools + 
+##     numOfHighSchools + avgSchoolDistance + avgSchoolRating + 
+##     avgSchoolSize + numOfBathrooms + numOfBedrooms
+##   Res.Df      RSS  Df Sum of Sq    F   Pr(&gt;F)    
+## 1   3076 3.71e+13                                
+## 2   3099 3.78e+13 -23 -6.99e+11 2.52 0.000085 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>housing_data_model = housing_data_model_significant
+
+summary(housing_data_model)$r.squared # 0.5569</code></pre>
+<pre><code>## [1] 0.5482</code></pre>
+<pre class="r"><code>summary(housing_data_model)$adj.r.squared # 0.5509</code></pre>
+<pre><code>## [1] 0.5456</code></pre>
 <pre class="r"><code># sqrt(mean((resid(housing_data_model) / (1 - hatvalues(housing_data_model))) ^ 2))</code></pre>
 <p>From the <span class="math inline">\(R^2\)</span> value, about 55.69% of data is explained by this model, with 46 predictors. Next, we will try to find a “better” model with <span class="math inline">\(R^2\)</span> greater than 0.5569, or adjusted <span class="math inline">\(R^2\)</span> greater than 0.5509.</p>
 <p><strong>TO DO: LOOCV_RMSE CALCULATION NOT WORKING</strong> We’ll also try to lower the value of LOOCV_RMSE (&lt; 111435) to explain the data.</p>
@@ -1128,10 +1146,10 @@ summary(housing_data_model)$r.squared # 0.5569</code></pre>
 <pre class="r"><code>## Additive model AIC and BIC
 housing_data_model_aic = step(housing_data_model, direction = &quot;backward&quot;, trace = 0)
 extractAIC(housing_data_model_aic) # returns both p and AIC</code></pre>
-<pre><code>## [1]    33 72409</code></pre>
+<pre><code>## [1]    19 72436</code></pre>
 <pre class="r"><code>## 29 predictors
 summary(housing_data_model_aic)$adj.r.squared</code></pre>
-<pre><code>## [1] 0.5515</code></pre>
+<pre><code>## [1] 0.5456</code></pre>
 <pre class="r"><code>## [1] 0.5515
 
 housing_data_model_bic = step(
@@ -1141,10 +1159,10 @@ housing_data_model_bic = step(
   k = log(nrow(housing_data_numerical))
 )
 extractAIC(housing_data_model_bic)  # returns both p and AIC</code></pre>
-<pre><code>## [1]    20 72429</code></pre>
+<pre><code>## [1]    19 72436</code></pre>
 <pre class="r"><code>## 20 predictors
 summary(housing_data_model_bic)$adj.r.squared</code></pre>
-<pre><code>## [1] 0.5467</code></pre>
+<pre><code>## [1] 0.5456</code></pre>
 <pre class="r"><code>## [1] 0.5467</code></pre>
 <p>The adjusted <span class="math inline">\(R^2\)</span> values are 0.5515 for the AIC model, and 0.5467 for the BIC model. Both of them are inferior to the additive model before backwards AIC and BIC.</p>
 <p>As another attempt, we’ll use exhaustive search to test every possible model and see if we can find a better one.</p>
@@ -1186,30 +1204,28 @@ housing_data_model_leaps$which[housing_data_model_leaps_r2_index,]</code></pre>
 ##                         FALSE                         FALSE 
 ##                     yearBuilt               numPriceChanges 
 ##                          TRUE                          TRUE 
-##              latest_salemonth               latest_saleyear 
-##                         FALSE                          TRUE 
-##    numOfAccessibilityFeatures               numOfAppliances 
-##                         FALSE                         FALSE 
-##          numOfParkingFeatures    numOfPatioAndPorchFeatures 
-##                         FALSE                         FALSE 
-##         numOfSecurityFeatures       numOfWaterfrontFeatures 
-##                         FALSE                         FALSE 
-##           numOfWindowFeatures        numOfCommunityFeatures 
-##                         FALSE                         FALSE 
-##                   lotSizeSqFt                livingAreaSqFt 
-##                         FALSE                          TRUE 
-##           numOfPrimarySchools        numOfElementarySchools 
-##                         FALSE                         FALSE 
-##            numOfMiddleSchools              numOfHighSchools 
-##                         FALSE                         FALSE 
-##             avgSchoolDistance               avgSchoolRating 
-##                         FALSE                          TRUE 
-##                 avgSchoolSize      MedianStudentsPerTeacher 
+##               latest_saleyear    numOfAccessibilityFeatures 
 ##                          TRUE                         FALSE 
-##                numOfBathrooms                 numOfBedrooms 
+##               numOfAppliances          numOfParkingFeatures 
 ##                         FALSE                         FALSE 
-##                  numOfStories 
-##                         FALSE</code></pre>
+##    numOfPatioAndPorchFeatures         numOfSecurityFeatures 
+##                         FALSE                         FALSE 
+##       numOfWaterfrontFeatures           numOfWindowFeatures 
+##                         FALSE                         FALSE 
+##        numOfCommunityFeatures                   lotSizeSqFt 
+##                         FALSE                         FALSE 
+##                livingAreaSqFt           numOfPrimarySchools 
+##                          TRUE                         FALSE 
+##        numOfElementarySchools            numOfMiddleSchools 
+##                         FALSE                         FALSE 
+##              numOfHighSchools             avgSchoolDistance 
+##                         FALSE                         FALSE 
+##               avgSchoolRating                 avgSchoolSize 
+##                          TRUE                          TRUE 
+##      MedianStudentsPerTeacher                numOfBathrooms 
+##                         FALSE                         FALSE 
+##                 numOfBedrooms                  numOfStories 
+##                         FALSE                         FALSE</code></pre>
 <pre class="r"><code>housing_data_model_leaps_best = lm(
   latestPrice ~ zipcode + propertyTaxRate + hasAssociation + latest_saleyear + yearBuilt + numPriceChanges + numOfWaterfrontFeatures +  avgSchoolSize +
     livingAreaSqFt + avgSchoolRating ,
@@ -1249,22 +1265,17 @@ summary(housing_data_model_leaps_best)</code></pre>
 <pre class="r"><code>anova(housing_data_model, housing_data_model_leaps_best)</code></pre>
 <pre><code>## Analysis of Variance Table
 ## 
-## Model 1: latestPrice ~ zipcode + latitude + longitude + propertyTaxRate + 
-##     hasAssociation + hasCooling + hasHeating + hasSpa + hasView + 
-##     homeType + parkingSpaces + yearBuilt + numPriceChanges + 
-##     latest_salemonth + latest_saleyear + numOfAccessibilityFeatures + 
-##     numOfAppliances + numOfParkingFeatures + numOfPatioAndPorchFeatures + 
-##     numOfSecurityFeatures + numOfWaterfrontFeatures + numOfWindowFeatures + 
-##     numOfCommunityFeatures + lotSizeSqFt + livingAreaSqFt + numOfPrimarySchools + 
-##     numOfElementarySchools + numOfMiddleSchools + numOfHighSchools + 
-##     avgSchoolDistance + avgSchoolRating + avgSchoolSize + MedianStudentsPerTeacher + 
-##     numOfBathrooms + numOfBedrooms + numOfStories
+## Model 1: latestPrice ~ zipcode + longitude + propertyTaxRate + hasAssociation + 
+##     yearBuilt + numPriceChanges + latest_saleyear + numOfPatioAndPorchFeatures + 
+##     lotSizeSqFt + livingAreaSqFt + numOfPrimarySchools + numOfElementarySchools + 
+##     numOfHighSchools + avgSchoolDistance + avgSchoolRating + 
+##     avgSchoolSize + numOfBathrooms + numOfBedrooms
 ## Model 2: latestPrice ~ zipcode + propertyTaxRate + hasAssociation + latest_saleyear + 
 ##     yearBuilt + numPriceChanges + numOfWaterfrontFeatures + avgSchoolSize + 
 ##     livingAreaSqFt + avgSchoolRating
-##   Res.Df      RSS  Df Sum of Sq    F Pr(&gt;F)    
-## 1   3075 3.71e+13                              
-## 2   3107 4.03e+13 -32 -3.19e+12 8.26 &lt;2e-16 ***
+##   Res.Df      RSS Df Sum of Sq    F Pr(&gt;F)    
+## 1   3099 3.78e+13                             
+## 2   3107 4.03e+13 -8 -2.46e+12 25.2 &lt;2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <p>The leaps model has a p-value &lt; 2e-16 and therefore can be considered.</p>
@@ -1421,7 +1432,7 @@ summary(housing_data_model_interaction)</code></pre>
 <p>From the <span class="math inline">\(R^2\)</span> value, about 58.99% of data is explained by this model, with 56 predictors. The adjusted <span class="math inline">\(R^2\)</span> is 0.5836. This model is preferred over the addictive model.</p>
 <p>Let’s compare the interactive model with the original model:</p>
 <pre class="r"><code>anova(housing_data_model, housing_data_model_interaction)[2, &quot;Pr(&gt;F)&quot;]</code></pre>
-<pre><code>## [1] 2.438e-49</code></pre>
+<pre><code>## [1] 1.356e-46</code></pre>
 <p>With a p-value of 2.438e-49, we can reject the null hypothesis and choose this model.</p>
 <p>Similarly to what we did with the additive model, we’ll investigate how well backwards AIC and BIC performs in the interactive model.</p>
 <pre class="r"><code>housing_data_model_interaction_aic = step(housing_data_model_interaction,
@@ -1637,6 +1648,7 @@ diagnostics(housing_data_model_interaction_aic_without_outliers)</code></pre>
 ## data:  housing_data_model_interaction_aic_without_outliers
 ## BP = 202, df = 32, p-value &lt;2e-16</code></pre>
 <p>As seen in box cox transformation, we can see that the mean of the normal distribution is centered around 0.43. We tried using 0.43 to 0.50 as exponential formula as per the box cox transformation, and we got best model at 0.50. Our p-value for normal distribution is 0.4, however, constant variation is still showing a low p-value. As we improved a lot based on the original Fitted versus Residual plot, we are choosing the <strong>interactive model with backwards AIC without outliers (housing_data_model_interaction_aic_without_outliers)</strong> as our final model after applying box cox transformation.</p>
+<<<<<<< HEAD
 <pre class="r"><code>error_raw = sigma(housing_data_model_interaction_aic_without_outliers)
 error = (error_raw ^2 + 1) * 0.5
 error</code></pre>
@@ -1650,6 +1662,15 @@ error = (error_raw ^2 + 1) * 0.5
 error</code></pre>
 <pre><code>## [1] 13722</code></pre>
 <p><br /> We are calculating error/noise with final model for test and train. We need to reverse transformation (Boxcox applied on model) on sigma of model to get final error value. These small error value shows greater accuracy of model. <br /> # Links and citations</p>
+=======
+<pre class="r"><code>library(Metrics)
+predictions_train = predict(housing_data_model_interaction_aic_without_outliers, housing_data_train)
+rmse(housing_data_train$latestPrice, predictions_train)</code></pre>
+<pre><code>## [1] 442823</code></pre>
+<pre class="r"><code>predictions_test = predict(housing_data_model_interaction_aic_without_outliers, housing_data_test)
+rmse(housing_data_test$latestPrice, predictions_test)</code></pre>
+<pre><code>## [1] 441555</code></pre>
+>>>>>>> c072e8fc265aad3edef1da6e6e9d9a77bc69e6c1
 </div>
 <div id="appendix-a-libraries-used" class="section level2">
 <h2>Appendix A: libraries used</h2>
