@@ -645,11 +645,14 @@ As seen in box cox transformation, the mean of the normal distribution is center
 
 Lastly, we will calculate the error and noise with the final model for both the test and train data frames. We to perform reverse transformation (box cox applied on the model) on sigma of the model to get the final error value.
 
-Variance for original model
+For illustration, here's the variance for the original model (additive):
+
 ```{r}
 sigma(lm(latestPrice ~ ., data = housing_data_train))
 sigma(lm(latestPrice ~ ., data = housing_data_test))
 ```
+
+And the error obtained from the chosen model:
 
 ```{r}
 error_raw = sigma(housing_data_model_interaction_aic_without_outliers)
@@ -665,8 +668,26 @@ housing_data_model_interaction_aic_without_outliers = lm((((latestPrice ^ 0.5) -
                                                          subset = cooksd < 2 * mean(cooksd, na.rm = T)
 )
 error_raw = sigma(housing_data_model_interaction_aic_without_outliers)
-error = (error_raw ^2 + 1) * 0.5
+error = (error_raw ^ 2 + 1) * 0.5
 error
+```
+
+RMSE errors: 
+
+```{r, warning=FALSE}
+library(Metrics)
+
+predictions_train = predict(housing_data_model_interaction_aic_without_outliers,
+                            housing_data_train)
+error_1 = rmse(((housing_data_train$latestPrice ^ 0.5 - 1) / 0.5), predictions_train)
+
+(error_1 ^ 2 + 1) * 0.5
+
+predictions_test = predict(housing_data_model_interaction_aic_without_outliers,
+                           housing_data_test)
+error_1 = rmse(((housing_data_test$latestPrice ^ 0.5 - 1) / 0.5), predictions_test)
+
+(error_1 ^ 2 + 1) * 0.5
 ```
 
 # 4. Conclusion
@@ -674,27 +695,6 @@ error
 Through this project, we've built a model that would help home buyers predict house prices in Austin, TX and surrounding cities and towns. Using data obtained from house sale listings on zillow.com, we were able to produce a clean data set to work with, verify the predictors for relevancy and collinearity, and adjusted the dataset based on findings of this analysis. 
 
 Model building considered several techniques, including the use of additive or interactive models, and the use of backwards AIC and BIC to find an optimal model the model. Having identified the model of choice, the **interactive model with backwards AIC without outliers**, we've performed diagnostics and fine tuning using an analysis of outliers to reduce errors and increase the accuracy of the model.
-
-
-RMSE Errors.
-```{r, warning=FALSE}
-
-library(Metrics)
-
-predictions_train = predict(housing_data_model_interaction_aic_without_outliers, housing_data_train)
-error_1 = rmse(((housing_data_train$latestPrice ^ 0.5 - 1)/0.5), predictions_train)
-
-(error_1 ^2 + 1) * 0.5
-
-
-predictions_test = predict(housing_data_model_interaction_aic_without_outliers, housing_data_test)
-error_1 = rmse(((housing_data_test$latestPrice ^ 0.5 - 1)/0.5), predictions_test)
-
-(error_1 ^2 + 1) * 0.5
-
-```
-
-
 
 # Links and citations
 
@@ -739,9 +739,13 @@ The following libraries were used in the creation of this report:
   
 **- leaps**
   
-    Thomas Lumley based on Fortran code by Alan Miller (2020). leaps: Regression Subset Selection. R
-    package version 3.1. https://CRAN.R-project.org/package=leaps
-  
+    Thomas Lumley based on Fortran code by Alan Miller (2020). leaps: Regression Subset Selection. R package version 3.1. https://CRAN.R-project.org/package=leaps
+    
+**- Metrics**
+
+    Ben Hamner and Michael Frasco (2018). Metrics: Evaluation Metrics for Machine Learning. R package version 0.1.4.
+    
+    https://CRAN.R-project.org/package=Metrics  
 ## Appendix B: links
 
 [^1]:"How To Succeed As A First-Time Home Buyer In Today’s Market" (https://www.forbes.com/sites/forbesrealestatecouncil/2021/07/19/how-to-succeed-as-a-first-time-home-buyer-in-todays-market/?sh=79e0d37f19f8)
