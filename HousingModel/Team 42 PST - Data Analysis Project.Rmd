@@ -11,7 +11,7 @@ urlcolor: cyan
 ---
 
 ```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
-options(scipen = 1, digits = 4, width = 80, fig.align = "center")
+options(scipen = 5, digits = 4, width = 80, fig.align = "center")
 ```
 
 # 1. Introduction: a study of housing market trends in Austin, Texas
@@ -118,7 +118,6 @@ selected_housing_data = subset(
     numOfPhotos
   )
 )
-
 ```
 
 Now that we've performed basic data cleaning tasks, let's take a look at the dataset. 
@@ -136,7 +135,7 @@ summary(selected_housing_data)
 Some of the variables demonstrate strange min and max values when compared to their mean: `avgSchoolDistance`, `livingAreaSqFt`, `lotSizeSqFt`, `numOfBedrooms`, and `numOfBathrooms`. We'll plot the observations of these variables in charts to better understand if they are outliers.  
 
 ```{r}
-dataVisuals = function(data) {
+data_visuals = function(data) {
   par(mfrow = c(2, 3))
   
   plot(
@@ -190,10 +189,10 @@ dataVisuals = function(data) {
   )
 }
 
-dataVisuals(selected_housing_data)
+data_visuals(selected_housing_data)
 ```
 
-From the data structure and visuals, we see that there are significant outliers in the dataset. For instance, one observation has a `livingAreaSqft` value of *'109,292'*, compared to its mean *'1,975'*. Other similiar outliers are noticed in `lotSizeSqFt`, `numOfBedrooms`, and `numOfBathrooms`. We will remove these outliers using boxplot stats. 
+From the data structure and visuals, we see that there are significant outliers in the dataset. For instance, one observation has a `livingAreaSqft` value of *'109,292'*, compared to its mean *'2,208'*. We shall remove these outliers using boxplot stats. 
 
 ```{r, warning=FALSE}
 for (x in c(
@@ -218,7 +217,7 @@ selected_housing_data = na.omit(selected_housing_data
 Looking at the plots again, we confirm that the observations are better represented now, without outliers. 
 
 ```{r, warning=FALSE}
-dataVisuals(selected_housing_data)
+data_visuals(selected_housing_data)
 ```
 
 The "cleaned" dataset now offers *11,493 observations* and *39 variables*.
@@ -305,7 +304,7 @@ housing_data_numerical = housing_data_train[, num_cols]
 
 We don't observe examples of collinearity between variables above 0.8, except for the relationship between `parkingSpaces` and `garageSpaces`. Remember that `parkingSpaces` is the number of parking spots, while `garageSpaces` represents the number of garage spaces as a subset of the `ParkingSpaces` variable. The latest may include additional parking spaces provided by common areas.
 
-The first reaction is to think that `parkingSpaces` and `garageSpaces` are the same. This is the case in almost all observations, except for 0.16% of the observations in the dataset.
+The first reaction is to think that `parkingSpaces` and `garageSpaces` are the same. This is the case in almost all observations, except for 0.16% of the observations in the dataset. 
 
 ```{r}
 #garageSpaces is not always the same as parkingSpaces
@@ -315,7 +314,7 @@ spaces_different = housing_data_train$parkingSpaces != housing_data_train$garage
 length(spaces_different[spaces_different == TRUE]) / length(spaces_different)
 ```
 
-Those variables contain the same value almost 99.84% of the observations. Therefore, we'll eliminate the `garageSpaces` variable from the dataset. 
+Therefore, we'll eliminate the `garageSpaces` variable from the dataset. 
 
 ```{r}
 housing_data_train = subset(housing_data_train, select = -c(garageSpaces))
@@ -358,12 +357,7 @@ vif_non_significant[which(vif_non_significant > 5)]
 (anova_results = anova(housing_data_model, housing_data_model_non_significant))
 ```
 
-When we compare the model with all predictor versus one that does not include the hasGarage predictor, we see the p-value significant at 0.94, so we fail to reject the null hypothesis. Therefore, we'll remove the hasGarage predictor from the analysis. 
-
-```{r} 
-# As p-value is significant (0.94), we fail to reject and consider remove hasGarage predictor.
-housing_data_train = subset(housing_data_train, select = -c(hasGarage))
-```
+When we compare the model with all predictor versus one that does not include the hasGarage predictor, we see the p-value significant at 0.94, so we fail to reject the null hypothesis. We'll continue the analysis with the hasGarage predictor. 
 
 # 3. Model Buidling
 
@@ -374,15 +368,37 @@ Now that we've cleaned the dataset by removing outliers and predictors that may 
 Let's build an additive model with all available predictors. 
 
 ```{r warning=FALSE}
+
+model_measures = function(models, names){
+
+  df = data.frame(matrix(nrow = 4, ncol = length(names)))
+  # assign row names
+  rownames(df) = c("Number Of Predictors", "RSquare", "Adj. RSquare", "LOOCV_RMSE")
+  # assign column names
+  colnames(df) = names
+  
+  for(i in 1:length(models)) { 
+    model = models[[i]]
+    
+    num_of_predictors = length(coef(model))
+    adj_rsquare = summary(model)$adj.r.squared
+    rsquare = summary(model)$r.squared
+    loocv_rmse = sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
+  
+    df[i] =  c( num_of_predictors, adj_rsquare, rsquare, loocv_rmse)
+  }
+  knitr::kable(df, "simple")
+}
+
 housing_data_model = lm(latestPrice ~ ., data = housing_data_train)
+model_measures(list(housing_data_model), c("Additive Model"))
+```
 
-length(coef(housing_data_model))
-## 43 predictors
+We shall find the significant variables with alpha 0.05.
 
-summary(housing_data_model)$r.squared # 0.5569
-summary(housing_data_model)$adj.r.squared # 0.5509
+```{r}
 
-alpha = 0.01
+alpha = 0.05
 variables_significant =  summary(housing_data_model)$coef[, 'Pr(>|t|)'] < alpha
 variableNames_significant = names(variables_significant[variables_significant == TRUE][-1])
 
@@ -391,29 +407,26 @@ predictors
 
 housing_data_model_significant =  lm(latestPrice ~ zipcode+longitude+propertyTaxRate+hasAssociation+yearBuilt+numPriceChanges+latest_saleyear+numOfPatioAndPorchFeatures+lotSizeSqFt+livingAreaSqFt+numOfPrimarySchools+numOfElementarySchools+numOfHighSchools+avgSchoolDistance+avgSchoolRating+avgSchoolSize+numOfBathrooms+numOfBedrooms, data = housing_data_train)
 
-anova(housing_data_model, housing_data_model_significant) # 0.000057
+anova(housing_data_model, housing_data_model_significant)
+
+model_measures(list(housing_data_model, housing_data_model_significant), c("All predictors", "Significant predictors"))
 
 housing_data_model = housing_data_model_significant
-
-summary(housing_data_model)$r.squared # 0.5569
-summary(housing_data_model)$adj.r.squared # 0.5509
-
-# sqrt(mean((resid(housing_data_model) / (1 - hatvalues(housing_data_model))) ^ 2))
 ```
 
-From the $R^2$ value, about 55.69% of data is explained by this model, with 46 predictors. Next, we will try to find a “better” model with $R^2$ greater than 0.5569, or adjusted $R^2$  greater than 0.5509. 
+From the $R^2$ value, about `r summary(housing_data_model)$r.squared` of data is explained by this model, with `r length(variables_significant)` predictors. Next, we will try to find a “better” model with $R^2$ greater than `r summary(housing_data_model)$r.squared`, or adjusted $R^2$  greater than `r summary(housing_data_model)$adj.r.squared`. 
 
-**TO DO: LOOCV_RMSE CALCULATION NOT WORKING** We'll also try to lower the value of LOOCV_RMSE (< 111435) to explain the data.
+We'll also try to lower the value of LOOCV_RMSE (< 110989) to explain the data.
 
 Next, we'll investigate how well backwards AIC and BIC performs in the additive model.
 
 ```{r warning=FALSE}
 ## Additive model AIC and BIC
+
 housing_data_model_aic = step(housing_data_model, direction = "backward", trace = 0)
 extractAIC(housing_data_model_aic) # returns both p and AIC
-## 29 predictors
+
 summary(housing_data_model_aic)$adj.r.squared
-## [1] 0.5515
 
 housing_data_model_bic = step(
   housing_data_model,
@@ -422,12 +435,10 @@ housing_data_model_bic = step(
   k = log(nrow(housing_data_numerical))
 )
 extractAIC(housing_data_model_bic)  # returns both p and AIC
-## 20 predictors
 summary(housing_data_model_bic)$adj.r.squared
-## [1] 0.5467
 ```
 
-The adjusted $R^2$ values are 0.5515 for the AIC model, and 0.5467 for the BIC model. Both of them are inferior to the additive model before backwards AIC and BIC. 
+The adjusted $R^2$ values are `r summary(housing_data_model_aic)$adj.r.squared` for the AIC model, and `r summary(housing_data_model_bic)$adj.r.squared`` for the BIC model. Both of them are inferior to the additive model before backwards AIC and BIC. 
 
 As another attempt, we'll use exhaustive search to test every possible model and see if we can find a better one. 
 
@@ -437,13 +448,10 @@ As another attempt, we'll use exhaustive search to test every possible model and
 library(leaps)
 
 housing_data_model_leaps = summary(regsubsets(latestPrice ~ ., data = housing_data_train))
-
 housing_data_model_leaps$rss
-
 housing_data_model_leaps$adjr2
 
-housing_data_model_leaps_r2_index = which.max(housing_data_model_leaps$adjr2)  # 0.5167
-
+housing_data_model_leaps_r2_index = which.max(housing_data_model_leaps$adjr2)
 housing_data_model_leaps$which[housing_data_model_leaps_r2_index,]
 
 housing_data_model_leaps_best = lm(
@@ -452,12 +460,10 @@ housing_data_model_leaps_best = lm(
   data = housing_data_train
 )
 
-summary(housing_data_model_leaps_best)
-
-anova(housing_data_model, housing_data_model_leaps_best)
+anova(housing_data_model, housing_data_model_leaps_best)[2, "Pr(>F)"]
 ```
 
-The leaps model has a p-value < 2e-16 and therefore can be considered.
+From anova results, the p-value < 2e-16 is significantly small and null hypothesis can be rejected. Considering the leaps model, we shall continue to perform model improvements techniques.
 
 ## 3.2. Interactive model
 
@@ -474,13 +480,13 @@ housing_data_model_interaction = lm(
 
 summary(housing_data_model_interaction)
 
-length(coef(housing_data_model_interaction))## 56 predictors
+length(coef(housing_data_model_interaction))
 
-summary(housing_data_model_interaction)$r.squared # 0.5899
-summary(housing_data_model_interaction)$adj.r.squared # 0.5836
+summary(housing_data_model_interaction)$r.squared 
+summary(housing_data_model_interaction)$adj.r.squared 
 ```
 
-From the $R^2$ value, about 58.99% of data is explained by this model, with 56 predictors. The adjusted $R^2$  is 0.5836. This model is preferred over the addictive model. 
+From the $R^2$ value, about `r summary(housing_data_model_interaction)$r.squared` of data is explained by this model, with `r length(coef(housing_data_model_interaction))` predictors. The adjusted $R^2$  is `summary(housing_data_model_interaction)$adj.r.squared `. This model is preferred over the additive model. 
 
 Let's compare the interactive model with the original model: 
 
@@ -489,7 +495,6 @@ anova(housing_data_model, housing_data_model_interaction)[2, "Pr(>F)"]
 ```
 
 With a p-value of 2.438e-49, we can reject the null hypothesis and choose this model.
-
 Similarly to what we did with the additive model, we'll investigate how well backwards AIC and BIC performs in the interactive model.
 
 ```{r}
@@ -498,9 +503,7 @@ housing_data_model_interaction_aic = step(housing_data_model_interaction,
                                           trace = 0)
 extractAIC(housing_data_model_interaction_aic) # returns both p and AIC
 housing_data_model_interaction_aic
-# 31 predictors  72174
 summary(housing_data_model_interaction_aic)$adj.r.squared
-# [1] 0.5844
 
 housing_data_model_interaction_bic = step(
   housing_data_model_interaction,
@@ -510,12 +513,10 @@ housing_data_model_interaction_bic = step(
 )
 
 extractAIC(housing_data_model_interaction_bic)  # returns both p and AIC
-# 25  predictors 72189
 summary(housing_data_model_interaction_bic)$adj.r.squared
-# [1] 0.581
 ```
 
-The adjusted $R^2$ values are 0.5844 for the AIC model, and 0.581 for the BIC model. Both of them are superior to the additive model and the original model. **The interaction model with backwards AIC (housing_data_model_interaction_aic) is the preferred model so far.**
+The adjusted $R^2$ values are `r summary(housing_data_model_interaction_aic)$adj.r.squared` for the AIC model, and `r summary(housing_data_model_interaction_bic)$adj.r.squared` for the BIC model. Both of them are superior to the additive model and the original model. **The interaction model with backwards AIC (housing_data_model_interaction_aic) is the preferred model so far.**
 
 ## 3.4. Diagnostics
 
@@ -556,14 +557,12 @@ diagnostics = function (model) {
   shapiro.test(resid(model))
 }
 ```
-
 Having defined the funcion, let's visualize the plots for the chosen model **housing_data_model_interaction_aic**:
 
 ```{r}
 diagnostics(housing_data_model_interaction_aic)
 ```
 
-**TO DO: NEED COMMENTS ON THE CHARTS**
 The Fitted versus Residuals plot shows the spread of residuals for many fitted values away from zero in the order of 200.000. The Q-Q Plot and the Histogram of Residuals show data points away from the line from -2 to 1 Theoretical Quantiles. This is a suspect Q-Q plot, leading to believe that the errors **do not follow** a normal distribution. 
 
 ## 3.5. Outliers
@@ -615,7 +614,6 @@ diagnostics(housing_data_model_interaction_aic_without_outliers)
 bptest(housing_data_model_interaction_aic_without_outliers)
 ```
 
-**TO DO: NEED COMMENTS ON THE IMPROVED CHARTS**
 The Fitted versus Residuals plot shows the spread of residuals for many fitted values away from zero in the order of hundreds of thousands, but at half the distance from the mean when compared to the previous model. Also, the Q-Q Plot and the Histogram of Residuals show data points close to line, meaning errors **follow** a normal distribution. 
 
 Finally, we'll use a box cox transformation on our model to improve the constant variance.
