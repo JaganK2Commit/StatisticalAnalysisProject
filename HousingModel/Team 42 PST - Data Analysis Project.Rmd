@@ -659,6 +659,8 @@ error
 ```
 <br/> We are calculating error/noise with final model for test and train. We need to reverse transformation (Boxcox applied on model) on sigma of model to get final error value. These small error value shows greater accuracy of model. <br/>
 
+
+RMSE Errors.
 ```{r, warning=FALSE}
 
 library(Metrics)
@@ -670,13 +672,13 @@ error_1 = rmse(((housing_data_train$latestPrice ^ 0.5 - 1)/0.5), predictions_tra
 
 
 predictions_test = predict(housing_data_model_interaction_aic_without_outliers, housing_data_test)
-error_1 = rmse(((housing_data_test$latestPrice ^ 0.5 - 1)/0.5), predictions_train)
+error_1 = rmse(((housing_data_test$latestPrice ^ 0.5 - 1)/0.5), predictions_test)
 
 (error_1 ^2 + 1) * 0.5
 
 ```
 
-RMSE Errors.
+
 
 # Links and citations
 
