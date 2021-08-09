@@ -95,7 +95,7 @@ Our first step will be to read the data from a csv file (`austinHousingData.csv`
 - The `homeType` variable has 10 different possible values (Apartment, Condo, Residential, etc). We'll make it a factor variable. 
 - Remove variables that will not be used in the analysis for lack of relevancy to the property price: `zpid`, `latest_saledate`, `latestPriceSource`, `city`, `homeImage`, `streetAddress`, and `numOfPhotos`.
 
-```{r, message=FALSE,echo=FALSE}
+```{r, message=FALSE}
 raw_housing_data = read.csv("austinHousingData.csv")
 
 # remove all rows with missing data
@@ -121,7 +121,7 @@ selected_housing_data = subset(
 
 Now that we've performed basic data cleaning tasks, let's take a look at the dataset. 
 
-```{r kable,message=FALSE,echo=FALSE}
+```{r kable,message=FALSE}
 head(selected_housing_data)
 ```
 
@@ -303,7 +303,7 @@ housing_data_numerical = housing_data_train[, num_cols]
 
 We don't observe examples of collinearity between variables above 0.8, except for the relationship between `parkingSpaces` and `garageSpaces`. Remember that `parkingSpaces` is the number of parking spots, while `garageSpaces` represents the number of garage spaces as a subset of the `ParkingSpaces` variable. The latest may include additional parking spaces provided by common areas.
 
-The first reaction is to think that `parkingSpaces` and `garageSpaces` are the same. This is the case in almost all observations, except for 0.16% of the observations in the dataset. 
+The first reaction is to think that `parkingSpaces` and `garageSpaces` are the same. This is the case in almost all observations, except for 0.16% of the observations in the dataset.
 
 ```{r}
 #garageSpaces is not always the same as parkingSpaces
@@ -313,7 +313,7 @@ spaces_different = housing_data_train$parkingSpaces != housing_data_train$garage
 length(spaces_different[spaces_different == TRUE]) / length(spaces_different)
 ```
 
-Therefore, we'll eliminate the `garageSpaces` variable from the dataset. 
+Those variables contain the same value almost 99.84% of the observations. Therefore, we'll eliminate the `garageSpaces` variable from the dataset. 
 
 ```{r}
 housing_data_train = subset(housing_data_train, select = -c(garageSpaces))
@@ -546,6 +546,7 @@ diagnostics(housing_data_model_interaction_aic)
 ```
 
 **TO DO: NEED COMMENTS ON THE CHARTS**
+The Fitted versus Residuals plot shows the spread of residuals for many fitted values away from zero in the order of 200.000. The Q-Q Plot and the Histogram of Residuals show data points away from the line from -2 to 1 Theoretical Quantiles. This is a suspect Q-Q plot, leading to believe that the errors **do not follow** a normal distribution. 
 
 ## 3.5. Outliers
 
@@ -597,6 +598,7 @@ bptest(housing_data_model_interaction_aic_without_outliers)
 ```
 
 **TO DO: NEED COMMENTS ON THE IMPROVED CHARTS**
+The Fitted versus Residuals plot shows the spread of residuals for many fitted values away from zero in the order of hundreds of thousands, but at half the distance from the mean when compared to the previous model. Also, the Q-Q Plot and the Histogram of Residuals show data points close to line, meaning errors **follow** a normal distribution. 
 
 Finally, we'll use a box cox transformation on our model to improve the constant variance.
 

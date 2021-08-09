@@ -273,7 +273,29 @@ pre code {
 <li>The <code>homeType</code> variable has 10 different possible values (Apartment, Condo, Residential, etc). We’ll make it a factor variable.</li>
 <li>Remove variables that will not be used in the analysis for lack of relevancy to the property price: <code>zpid</code>, <code>latest_saledate</code>, <code>latestPriceSource</code>, <code>city</code>, <code>homeImage</code>, <code>streetAddress</code>, and <code>numOfPhotos</code>.</li>
 </ul>
+<pre class="r"><code>raw_housing_data = read.csv(&quot;austinHousingData.csv&quot;)
+
+# remove all rows with missing data
+raw_housing_data = na.omit(raw_housing_data)
+
+# Make homeType a factor variable
+raw_housing_data$homeType = as.factor(raw_housing_data$homeType)
+
+# Remove predictors that are not used
+selected_housing_data = subset(
+  raw_housing_data,
+  select = -c(
+    zpid,
+    latest_saledate,
+    latestPriceSource,
+    city,
+    homeImage,
+    streetAddress,
+    numOfPhotos
+  )
+)</code></pre>
 <p>Now that we’ve performed basic data cleaning tasks, let’s take a look at the dataset.</p>
+<pre class="r"><code>head(selected_housing_data)</code></pre>
 <pre><code>##   zipcode latitude longitude propertyTaxRate garageSpaces hasAssociation
 ## 1   78660    30.43    -97.66            1.98            2           TRUE
 ## 2   78660    30.43    -97.66            1.98            2           TRUE
@@ -1536,7 +1558,7 @@ summary(housing_data_model_interaction_bic)$adj.r.squared</code></pre>
 ## 
 ## data:  resid(model)
 ## W = 0.97, p-value &lt;2e-16</code></pre>
-<p><strong>TO DO: NEED COMMENTS ON THE CHARTS</strong></p>
+<p><strong>TO DO: NEED COMMENTS ON THE CHARTS</strong> The Fitted versus Residuals plot shows the spread of residuals for many fitted values away from zero in the order of 200.000. The Q-Q Plot and the Histogram of Residuals show data points away from the line from -2 to 1 Theoretical Quantiles. This is a suspect Q-Q plot, leading to believe that the errors <strong>do not follow</strong> a normal distribution.</p>
 </div>
 <div id="outliers" class="section level2">
 <h2>3.5. Outliers</h2>
@@ -1590,7 +1612,7 @@ diagnostics(housing_data_model_interaction_aic_without_outliers)</code></pre>
 ## 
 ## data:  housing_data_model_interaction_aic_without_outliers
 ## BP = 322, df = 32, p-value &lt;2e-16</code></pre>
-<p><strong>TO DO: NEED COMMENTS ON THE IMPROVED CHARTS</strong></p>
+<p><strong>TO DO: NEED COMMENTS ON THE IMPROVED CHARTS</strong> The Fitted versus Residuals plot shows the spread of residuals for many fitted values away from zero in the order of hundreds of thousands, but at half the distance from the mean when compared to the previous model. Also, the Q-Q Plot and the Histogram of Residuals show data points close to line, meaning errors <strong>follow</strong> a normal distribution.</p>
 <p>Finally, we’ll use a box cox transformation on our model to improve the constant variance.</p>
 <pre class="r"><code>library(MASS)
 boxcox(
