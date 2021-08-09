@@ -444,7 +444,7 @@ extractAIC(housing_data_model_bic)  # returns both p and AIC
 summary(housing_data_model_bic)$adj.r.squared
 ```
 
-The adjusted $R^2$ values are `r summary(housing_data_model_aic)$adj.r.squared` for the AIC model, and `r summary(housing_data_model_bic)$adj.r.squared`` for the BIC model. Both of them are inferior to the additive model before backwards AIC and BIC. 
+The adjusted $R^2$ values are `r summary(housing_data_model_aic)$adj.r.squared` for the AIC model, and `r summary(housing_data_model_bic)$adj.r.squared` for the BIC model. Both of them are inferior to the additive model before backwards AIC and BIC. 
 
 As another attempt, we'll use **exhaustive search** to test every possible model and see if we can find a better one. 
 
@@ -490,7 +490,7 @@ summary(housing_data_model_interaction)$r.squared
 summary(housing_data_model_interaction)$adj.r.squared 
 ```
 
-From the $R^2$ value, about `r summary(housing_data_model_interaction)$r.squared` of data is explained by this model, with `r length(coef(housing_data_model_interaction))` predictors. The adjusted $R^2$  is `summary(housing_data_model_interaction)$adj.r.squared`. This model is preferred over the additive model. 
+From the $R^2$ value, about `r summary(housing_data_model_interaction)$r.squared` of data is explained by this model, with `r length(coef(housing_data_model_interaction))` predictors. The adjusted $R^2$  is `r summary(housing_data_model_interaction)$adj.r.squared`. This model is preferred over the additive model. 
 
 Let's compare the interactive model with the original model: 
 
@@ -672,7 +672,7 @@ error = (error_raw ^ 2 + 1) * 0.5
 error
 ```
 
-RMSE errors: 
+RMSE errors for train and test data (respectivelly): 
 
 ```{r, warning=FALSE}
 library(Metrics)
