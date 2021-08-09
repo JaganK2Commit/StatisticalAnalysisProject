@@ -1680,6 +1680,7 @@ error = (error_raw ^2 + 1) * 0.5
 error</code></pre>
 <pre><code>## [1] 13722</code></pre>
 <p><br /> We are calculating error/noise with final model for test and train. We need to reverse transformation (Boxcox applied on model) on sigma of model to get final error value. These small error value shows greater accuracy of model. <br /></p>
+<p>RMSE Errors.</p>
 <pre class="r"><code>library(Metrics)
 
 predictions_train = predict(housing_data_model_interaction_aic_without_outliers, housing_data_train)
@@ -1688,11 +1689,10 @@ error_1 = rmse(((housing_data_train$latestPrice ^ 0.5 - 1)/0.5), predictions_tra
 (error_1 ^2 + 1) * 0.5</code></pre>
 <pre><code>## [1] 13104</code></pre>
 <pre class="r"><code>predictions_test = predict(housing_data_model_interaction_aic_without_outliers, housing_data_test)
-error_1 = rmse(((housing_data_test$latestPrice ^ 0.5 - 1)/0.5), predictions_train)
+error_1 = rmse(((housing_data_test$latestPrice ^ 0.5 - 1)/0.5), predictions_test)
 
 (error_1 ^2 + 1) * 0.5</code></pre>
-<pre><code>## [1] 49501</code></pre>
-<p>RMSE Errors.</p>
+<pre><code>## [1] 13576</code></pre>
 </div>
 </div>
 <div id="links-and-citations" class="section level1">
