@@ -11,7 +11,7 @@ urlcolor: cyan
 ---
 
 ```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
-options(scipen = 1, digits = 4, width = 80, fig.align = "center")
+options(scipen = 5, digits = 4, width = 80, fig.align = "center")
 ```
 
 # 1. Introduction: a study of housing market trends in Austin, Texas
@@ -95,7 +95,7 @@ Our first step will be to read the data from a csv file (`austinHousingData.csv`
 - The `homeType` variable has 10 different possible values (Apartment, Condo, Residential, etc). We'll make it a factor variable. 
 - Remove variables that will not be used in the analysis for lack of relevancy to the property price: `zpid`, `latest_saledate`, `latestPriceSource`, `city`, `homeImage`, `streetAddress`, and `numOfPhotos`.
 
-```{r, message=FALSE,echo=FALSE}
+```{r, message=FALSE}
 raw_housing_data = read.csv("austinHousingData.csv")
 
 # remove all rows with missing data
@@ -118,10 +118,11 @@ selected_housing_data = subset(
     numOfPhotos
   )
 )
+```
 
 Now that we've performed basic data cleaning tasks, let's take a look at the dataset. 
 
-```{r kable,message=FALSE,echo=FALSE}
+```{r kable,message=FALSE}
 head(selected_housing_data)
 ```
 
@@ -134,7 +135,7 @@ summary(selected_housing_data)
 Some of the variables demonstrate strange min and max values when compared to their mean: `avgSchoolDistance`, `livingAreaSqFt`, `lotSizeSqFt`, `numOfBedrooms`, and `numOfBathrooms`. We'll plot the observations of these variables in charts to better understand if they are outliers.  
 
 ```{r}
-dataVisuals = function(data) {
+data_visuals = function(data) {
   par(mfrow = c(2, 3))
   
   plot(
@@ -188,10 +189,10 @@ dataVisuals = function(data) {
   )
 }
 
-dataVisuals(selected_housing_data)
+data_visuals(selected_housing_data)
 ```
 
-From the data structure and visuals, we see that there are significant outliers in the dataset. For instance, one observation has a `livingAreaSqft` value of *'109,292'*, compared to its mean *'1,975'*. Other similiar outliers are noticed in `lotSizeSqFt`, `numOfBedrooms`, and `numOfBathrooms`. We will remove these outliers using boxplot stats. 
+From the data structure and visuals, we see that there are significant outliers in the dataset. For instance, one observation has a `livingAreaSqft` value of *'109,292'*, compared to its mean *'2,208'*. We shall remove these outliers using boxplot stats. 
 
 ```{r, warning=FALSE}
 for (x in c(
@@ -216,10 +217,10 @@ selected_housing_data = na.omit(selected_housing_data
 Looking at the plots again, we confirm that the observations are better represented now, without outliers. 
 
 ```{r, warning=FALSE}
-dataVisuals(selected_housing_data)
+data_visuals(selected_housing_data)
 ```
 
-The "cleaned" dataset now offers *11,493 observations* and *39 variables*.
+The "cleaned" dataset now offers *12,475 observations* and *38 variables*.
 
 ```{r, warning=FALSE}
 str(selected_housing_data)
@@ -356,12 +357,7 @@ vif_non_significant[which(vif_non_significant > 5)]
 (anova_results = anova(housing_data_model, housing_data_model_non_significant))
 ```
 
-When we compare the model with all predictor versus one that does not include the hasGarage predictor, we see the p-value significant at 0.94, so we fail to reject the null hypothesis. Therefore, we'll remove the hasGarage predictor from the analysis. 
-
-```{r} 
-# As p-value is significant (0.94), we fail to reject and consider remove hasGarage predictor.
-housing_data_train = subset(housing_data_train, select = -c(hasGarage))
-```
+When we compare the model with all predictor versus one that does not include the hasGarage predictor, we see the p-value significant at 0.94, so we fail to reject the null hypothesis. We'll continue the analysis with the hasGarage predictor. 
 
 # 3. Model Buidling
 
@@ -372,15 +368,38 @@ Now that we've cleaned the dataset by removing outliers and predictors that may 
 Let's build an additive model with all available predictors. 
 
 ```{r warning=FALSE}
+
+model_measures = function(models, names){
+
+  df = data.frame(matrix(nrow = 4, ncol = length(names)))
+  # assign row names
+  rownames(df) = c("Number Of Predictors", "RSquare", "Adj. RSquare", "LOOCV_RMSE")
+  # assign column names
+  colnames(df) = names
+  
+  for(i in 1:length(models)) { 
+    model = models[[i]]
+    
+    num_of_predictors = length(coef(model))
+    adj_rsquare = summary(model)$adj.r.squared
+    rsquare = summary(model)$r.squared
+    loocv_rmse = sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
+  
+    df[i] =  c( num_of_predictors, adj_rsquare, rsquare, loocv_rmse)
+    #i = i + 1
+  }
+  knitr::kable(df, "simple")
+}
+
 housing_data_model = lm(latestPrice ~ ., data = housing_data_train)
+model_measures(list(housing_data_model), c("Additive Model"))
+```
 
-length(coef(housing_data_model))
-## 43 predictors
+We shall find the significant variables with alpha 0.05.
 
-summary(housing_data_model)$r.squared # 0.5569
-summary(housing_data_model)$adj.r.squared # 0.5509
+```{r}
 
-alpha = 0.01
+alpha = 0.05
 variables_significant =  summary(housing_data_model)$coef[, 'Pr(>|t|)'] < alpha
 variableNames_significant = names(variables_significant[variables_significant == TRUE][-1])
 
@@ -389,23 +408,21 @@ predictors
 
 housing_data_model_significant =  lm(latestPrice ~ zipcode+longitude+propertyTaxRate+hasAssociation+yearBuilt+numPriceChanges+latest_saleyear+numOfPatioAndPorchFeatures+lotSizeSqFt+livingAreaSqFt+numOfPrimarySchools+numOfElementarySchools+numOfHighSchools+avgSchoolDistance+avgSchoolRating+avgSchoolSize+numOfBathrooms+numOfBedrooms, data = housing_data_train)
 
-anova(housing_data_model, housing_data_model_significant) # 0.000057
+anova(housing_data_model, housing_data_model_significant)
+
+model_measures(list(housing_data_model, housing_data_model_significant), c("All predictors", "Significant predictors"))
 
 housing_data_model = housing_data_model_significant
-
-summary(housing_data_model)$r.squared # 0.5569
-summary(housing_data_model)$adj.r.squared # 0.5509
-
-# sqrt(mean((resid(housing_data_model) / (1 - hatvalues(housing_data_model))) ^ 2))
 ```
 
-From the $R^2$ value, about 55.69% of data is explained by this model, with 46 predictors. Next, we will try to find a “better” model with $R^2$ greater than 0.5569, or adjusted $R^2$  greater than 0.5509. 
+From the $R^2$ value, about `r summary(housing_data_model)$r.squared` of data is explained by this model, with `r length(variables_significant)` predictors. Next, we will try to find a “better” model with $R^2$ greater than `r summary(housing_data_model)$r.squared`, or adjusted $R^2$  greater than `r summary(housing_data_model)$adj.r.squared`. 
 
-**TO DO: LOOCV_RMSE CALCULATION NOT WORKING** We'll also try to lower the value of LOOCV_RMSE (< 111435) to explain the data.
+We'll also try to lower the value of LOOCV_RMSE (< 110989) to explain the data.
 
 Next, we'll investigate how well backwards AIC and BIC performs in the additive model.
 
 ```{r warning=FALSE}
+
 ## Additive model AIC and BIC
 housing_data_model_aic = step(housing_data_model, direction = "backward", trace = 0)
 extractAIC(housing_data_model_aic) # returns both p and AIC
@@ -423,6 +440,9 @@ extractAIC(housing_data_model_bic)  # returns both p and AIC
 ## 20 predictors
 summary(housing_data_model_bic)$adj.r.squared
 ## [1] 0.5467
+
+model_measures(list(housing_data_model, housing_data_model_aic, housing_data_model_bic), c("Additive model", "AIC model", "BIC model"))
+
 ```
 
 The adjusted $R^2$ values are 0.5515 for the AIC model, and 0.5467 for the BIC model. Both of them are inferior to the additive model before backwards AIC and BIC. 
@@ -637,6 +657,8 @@ As seen in box cox transformation, we can see that the mean of the normal distri
 
 
 ```{r, warning=FALSE}
+
+library(Metrics)
 
 predictions_train = predict(housing_data_model_interaction_aic_without_outliers, housing_data_train)
 rmse(housing_data_train$latestPrice, predictions_train)
